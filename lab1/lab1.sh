@@ -59,6 +59,18 @@ do
     1)
         do_pwd
         ;;
+    2)
+        nop
+        ;;
+    3)
+        nop
+        ;;
+    4)
+        nop
+        ;;
+    5)
+        nop
+        ;;
     6)
         do_exit
         ;;
