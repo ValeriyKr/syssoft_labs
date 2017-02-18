@@ -52,10 +52,19 @@ while [ 1 ]
 do
     echo -e "$task_list"
     read cmd
+
+    # End of input stream, i guess
+    if [ $? -ne 0 ]
+    then
+        do_exit
+    fi
+
     case $cmd in
+    # Just <Return> pressing
     '')
         nop
         ;;
+    # Commands
     1)
         do_pwd
         ;;
@@ -74,6 +83,7 @@ do
     6)
         do_exit
         ;;
+    # Anything else
     *)
         log "Incorrect command: $cmd"
         ;;
