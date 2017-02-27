@@ -10,10 +10,11 @@ task_list='1. Print working directory
 3. Create directory
 4. Add writing permissions to directory
 5. Take writing permissions from directory
-6. exit'
+6. exit
+Enter a command:'
 
 LOGFILE="${HOME}/lab1_err"
-WARN_MSG="An error occurred!"
+WARN_MSG='An error occurred!'
 
 
 nop() {
@@ -22,7 +23,7 @@ nop() {
 
 
 do_pwd() {
-        pwd 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+        echo "$PWD" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
 }
 
 
@@ -32,37 +33,38 @@ do_ls() {
 
 
 do_mkdir() {
-        echo "Enter directory name:"
+        echo 'Enter directory name:'
         dirname="$(read_filename)"
         mkdir "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
 }
 
 
 do_allow_writing() {
-        echo "Enter directory name:"
+        echo 'Enter directory name:'
         dirname="$(read_filename)"
         if [ -d "${dirname}" ]
         then
                 chmod ugo+w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
         else
-                echo "No such directory" | tee -a "$LOGFILE" 1>&2
+                echo 'No such directory' | tee -a "$LOGFILE" 1>&2
         fi
 }
 
 
 do_deny_writing() {
-        echo "Enter directory name:"
+        echo 'Enter directory name:'
         dirname="$(read_filename)"
         if [ -d "${dirname}" ]
         then
                 chmod ugo-w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
         else
-                echo "No such directory" | tee -a "$LOGFILE" 1>&2
+                echo 'No such directory' | tee -a "$LOGFILE" 1>&2
         fi
 }
 
 
 do_exit() {
+        echo 'Bye'
         exit 0;
 }
 
@@ -117,7 +119,7 @@ do
                 ;;
         # Anything else
         *)
-                echo "Incorrect command"
+                echo 'Incorrect command'
                 ;;
         esac
         echo
