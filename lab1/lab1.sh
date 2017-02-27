@@ -6,20 +6,14 @@
 #
 
 task_list='1. Print working directory
-2.
-3.
-4.
-5.
+2. Print working directory contents
+3. Create directory
+4. Add writing permissions to directory
+5. Take writing permissions from directory
 6. exit'
 
-
-log() {
-        echo "$1" 2>&1 | tee -a ~/lab1_err 1>&2
-        if [ $? -ne 0 ]
-        then 
-                echo "Cannot write the log: " ~/lab1_err "!" 1>&2
-        fi
-}
+LOGFILE="${HOME}/lab1_err"
+WARN_MSG="An error occurred!"
 
 
 nop() {
@@ -28,7 +22,43 @@ nop() {
 
 
 do_pwd() {
-        pwd
+        pwd 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+}
+
+
+do_ls() {
+        ls 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+}
+
+
+do_mkdir() {
+        echo "Enter directory name:"
+        dirname="$(read_filename)"
+        mkdir "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+}
+
+
+do_allow_writing() {
+        echo "Enter directory name:"
+        dirname="$(read_filename)"
+        if [ -d "${dirname}" ]
+        then
+                chmod ugo+w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+        else
+                echo "No such directory" | tee -a "$LOGFILE" 1>&2
+        fi
+}
+
+
+do_deny_writing() {
+        echo "Enter directory name:"
+        dirname="$(read_filename)"
+        if [ -d "${dirname}" ]
+        then
+                chmod ugo-w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+        else
+                echo "No such directory" | tee -a "$LOGFILE" 1>&2
+        fi
 }
 
 
@@ -71,24 +101,24 @@ do
                 do_pwd
                 ;;
         2)
-                nop
+                do_ls
                 ;;
         3)
-                nop
+                do_mkdir
                 ;;
         4)
-                nop
+                do_allow_writing
                 ;;
         5)
-                nop
+                do_deny_writing
                 ;;
         6)
                 do_exit
                 ;;
         # Anything else
         *)
-                log "Incorrect command: $cmd"
+                echo "Incorrect command"
                 ;;
         esac
-        printf "\n"
+        echo
 done
