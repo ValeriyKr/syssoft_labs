@@ -23,7 +23,7 @@ nop() {
 
 
 do_pwd() {
-        echo "$PWD" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+        pwd -P 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
 }
 
 
@@ -82,7 +82,7 @@ read_filename() {
 
 
 cmd=''
-while [ 1 ]
+while true
 do
         echo -e "$task_list"
         read cmd
@@ -119,7 +119,7 @@ do
                 ;;
         # Anything else
         *)
-                echo 'Incorrect command'
+                echo 'Incorrect command' 1>&2
                 ;;
         esac
         echo
