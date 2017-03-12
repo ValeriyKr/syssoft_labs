@@ -5,6 +5,8 @@
 # vim: set shiftwidth=8:
 #
 
+exec 3>&2 2>~/lab1_err
+
 task_list='1. Print working directory
 2. Print working directory contents
 3. Create directory
@@ -100,19 +102,25 @@ do
                 ;;
         # Commands
         1)
-                do_pwd
+                pwd -P || echo 'Error: pwd' >&3
                 ;;
         2)
-                do_ls
+                ls || echo 'Error: ls' >&3
                 ;;
         3)
-                do_mkdir
+                echo 'Enter directory name:'
+                dirname="$(read_filename)"
+                mkdir -- "$dirname" || echo 'Error: mkdir' >&3
                 ;;
         4)
-                do_allow_writing
+                echo 'Enter directory name:'
+                dirname="$(read_filename)"
+                chmod ugo+w -- "$dirname" || echo 'Error: chmod +w' >&3
                 ;;
         5)
-                do_deny_writing
+                echo 'Enter directory name:'
+                dirname="$(read_filename)"
+                chmod ugo-w -- "$dirname" || echo 'Error: chmod -w' >&3
                 ;;
         6)
                 do_exit
