@@ -5,75 +5,9 @@
 # vim: set shiftwidth=8:
 #
 
-exec 3>&2 2>~/lab1_err
-
-task_list='1. Print working directory
-2. Print working directory contents
-3. Create directory
-4. Add writing permissions to directory
-5. Take writing permissions from directory
-6. exit
-Enter a command:'
-
-LOGFILE="${HOME}/lab1_err"
-WARN_MSG='An error occurred!'
+exec 3>&2 2>>$HOME/lab1_err
 
 
-nop() {
-        return
-}
-
-
-do_pwd() {
-        pwd -P 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
-}
-
-
-do_ls() {
-        ls 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
-}
-
-
-do_mkdir() {
-        echo 'Enter directory name:'
-        dirname="$(read_filename)"
-        mkdir -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
-}
-
-
-do_allow_writing() {
-        echo 'Enter directory name:'
-        dirname="$(read_filename)"
-        if [ -d "${dirname}" ]
-        then
-                chmod ugo+w -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
-        else
-                echo 'No such directory' | tee -a "$LOGFILE" 1>&2
-        fi
-}
-
-
-do_deny_writing() {
-        echo 'Enter directory name:'
-        dirname="$(read_filename)"
-        if [ -d "${dirname}" ]
-        then
-                chmod ugo-w -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
-        else
-                echo 'No such directory' | tee -a "$LOGFILE" 1>&2
-        fi
-}
-
-
-do_exit() {
-        echo 'Bye'
-        exit 0;
-}
-
-
-# Reads and returns filename
-# Use double quotes when receive value!
-# It can start with space or another symbol, exclude backslash
 read_filename() {
         old_IFS="$IFS"
         IFS=''
@@ -84,21 +18,25 @@ read_filename() {
 
 
 cmd=''
-while true
-do
-        echo -e "$task_list"
+while {
+        # Indents with tabs! (Because of bash)
+        cat <<- EOF
+		1. Print working directory
+		2. Print working directory contents
+		3. Create directory
+		4. Add writing permissions to directory
+		5. Take writing permissions from directory
+		6. exit
+		Enter a command:
+		EOF
+        # Normal indents
         read cmd
-
-        # End of input stream, i guess
-        if [ $? -ne 0 ]
-        then
-                do_exit
-        fi
-
+}
+do
         case $cmd in
         # Just <Return> pressing
         '')
-                nop
+                true
                 ;;
         # Commands
         1)
@@ -123,12 +61,13 @@ do
                 chmod ugo-w -- "$dirname" || echo 'Error: chmod -w' >&3
                 ;;
         6)
-                do_exit
+                break
                 ;;
         # Anything else
         *)
-                echo 'Incorrect command' 1>&2
+                echo 'Incorrect command' >&3
                 ;;
         esac
         echo
 done
+echo 'Bye'
