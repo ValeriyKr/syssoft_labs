@@ -35,7 +35,7 @@ do_ls() {
 do_mkdir() {
         echo 'Enter directory name:'
         dirname="$(read_filename)"
-        mkdir "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+        mkdir -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
 }
 
 
@@ -44,7 +44,7 @@ do_allow_writing() {
         dirname="$(read_filename)"
         if [ -d "${dirname}" ]
         then
-                chmod ugo+w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+                chmod ugo+w -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
         else
                 echo 'No such directory' | tee -a "$LOGFILE" 1>&2
         fi
@@ -56,7 +56,7 @@ do_deny_writing() {
         dirname="$(read_filename)"
         if [ -d "${dirname}" ]
         then
-                chmod ugo-w "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
+                chmod ugo-w -- "$dirname" 2>>"$LOGFILE" || echo "$WARN_MSG" 1>&2
         else
                 echo 'No such directory' | tee -a "$LOGFILE" 1>&2
         fi
