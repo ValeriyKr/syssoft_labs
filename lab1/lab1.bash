@@ -7,10 +7,7 @@
 
 exec 3>&2 2>>$HOME/lab1_err
 IFS=''
-cmd=''
-while {
-        # Indents with tabs! (Because of bash)
-        cat <<- EOF
+while cat <<- EOF
 				1. Print working directory
 				2. Print working directory contents
 				3. Create directory
@@ -19,9 +16,7 @@ while {
 				6. exit
 				Enter a command:
 		EOF
-        # Normal indents
         read cmd
-}
 do
         case $cmd in
         '') true ;;
@@ -31,10 +26,9 @@ do
                 read dirname
                 mkdir -- "$dirname" || echo 'Error: mkdir' >&3 ;;
         4|5) read -p $'Enter directory name:\n' dirname 2>&1
-                chmod ugo$(echo $cmd | tr 45 +-)w -- "$dirname/" || echo 'Error: chmod' >&3 ;;
+                chmod -- ugo$(tr 45 +- <<<$cmd)w "$dirname/" || echo 'Error: chmod' >&3 ;;
         6) break ;;
         *) echo 'Incorrect command' >&3 ;;
         esac
         echo
 done
-echo 'Bye'
