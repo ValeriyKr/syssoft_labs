@@ -20,14 +20,14 @@ while cat <<- EOF
 do
         case $cmd in
         '') true ;;
-        1) pwd -P || echo 'Error: pwd' >&3 ;;
-        2) ls || echo 'Error: ls' >&3 ;;
-        3) echo 'Enter directory name:'
-                read dirname
-                mkdir -- "$dirname" || echo 'Error: mkdir' >&3 ;;
+        1) pwd -P               || echo 'Error: pwd' >&3 ;;
+        2) ls                   || echo 'Error: ls ' >&3 ;;
+        3) echo 'Enter directory name:'; read dirname
+           mkdir -- "$dirname"  || echo 'Error: mkdir' >&3 ;;
         4|5) read -p $'Enter directory name:\n' dirname 2>&1
-                chmod -- ugo$(tr 45 +- <<<$cmd)w "$dirname/" || echo 'Error: chmod' >&3 ;;
-        6) break ;;
+           chmod -- ugo$(tr 45 +- <<<$cmd)w "$dirname/" ||
+                echo 'Error: chmod' >&3 ;;
+        6) exit 0 ;;
         *) echo 'Incorrect command' >&3 ;;
         esac
         echo
