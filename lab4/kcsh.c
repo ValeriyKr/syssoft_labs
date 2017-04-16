@@ -7,37 +7,15 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
+#include "globdef.h"
 #include "parser.h"
+#include "io.h"
 
-
-#define ERROR_MSG(x) "\nkcsh: " x
 
 #define CMD_LENGTH 1024
 
-
-enum error_in {
-        E_WRITE,
-        E_READ,
-        E_FORK,
-        E_EXEC
-};
-
-
-/*
- * Says something to stdout
- *
- * \param message message to say
- */
-void say(const char *message);
-
-/*
- * Prints error to stderr and exits if exit is required
- *
- * \param subj subkect of error
- * \param do_exit ono-zero if want to exit after this error
- */
-void error(enum error_in subj, int do_exit);
 
 /* Does fork end executes subprocess.
  * Executes error(E_WRITE, 1) if is shutted up.
@@ -46,57 +24,6 @@ void error(enum error_in subj, int do_exit);
  * \return exit status of executed command. 0 is usually good.
  */
 int fork_and_exec(char **args);
-
-
-
-void say(const char *message) {
-        if (NULL == message) return;
-        if (-1 == write(1, message, strlen(message))) {
-                error(E_WRITE, 1);
-        }
-}
-
-
-void error(enum error_in subj, int do_exit) {
-        int exit_code;
-        switch (subj) {
-                case E_WRITE:
-                {
-                        const char err[] = ERROR_MSG("cannot write to stdout");
-                        write(2, err, sizeof(err));
-                        exit_code = 1;
-                        break;
-                }
-                case E_READ:
-                {
-                        const char err[] = ERROR_MSG("cannot read stdin");
-                        write(2, err, sizeof(err));
-                        exit_code = 2;
-                        break;
-                }
-                case E_FORK:
-                {
-                        const char err[] = ERROR_MSG("cannot do fork");
-                        write(2, err, sizeof(err));
-                        exit_code = 3;
-                        break;
-                }
-                case E_EXEC:
-                {
-                        const char err[] = ERROR_MSG("cannot do exec");
-                        write(2, err, sizeof(err));
-                        exit_code = 4;
-                        break;
-                }
-                default:
-                {
-                        const char *err = ERROR_MSG("unknown error");
-                        write(2, err, sizeof(err));
-                        exit_code = 255;
-                }
-        }
-        if (do_exit) exit(exit_code);
-}
 
 
 int fork_and_exec(char **args) {
@@ -131,21 +58,34 @@ int fork_and_exec(char **args) {
 int main(int argc, char *argv[]) {
         char cmd_buff[CMD_LENGTH];
 
-        /* PS1 in your sweet Bourne-compatible shells */
-        setenv("prompt", "% ", 1);
+        goodmorning();
         while (1) {
                 ssize_t cmd_len;
                 char **args;
-                say(getenv("prompt"));
-                cmd_buff[0] = '\0';
-                if (-1 == (cmd_len = read(0, cmd_buff, CMD_LENGTH - 1))) {
-                        error(E_READ, 2);
-                }
-                if (0 == cmd_len) {
-                        exit(0); /* EOF occurred */
-                }
-                cmd_buff[cmd_len] = '\0';
+                char *line = get_line();
                 args = parse_cmd(cmd_buff);
                 fork_and_exec(args);
+                free(line);
         }
+        goodnight(0);
+}
+
+
+void sigint_handler(int signal) {
+        /* TODO: check all traps */
+        say("^C");
+}
+
+
+void goodmorning() {
+        init_term();
+        /* PS1 in your sweet Bourne-compatible shells */
+        setenv("prompt", "% ", 1);
+        signal(SIGINT, sigint_handler);
+}
+
+
+void goodnight(int exit_code) {
+        reset_term();
+        exit(exit_code);
 }
