@@ -1,44 +1,69 @@
-/* Made by ValeriyKr (s207214) */
-/*
- * vim: sw=8 :
- */
-
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+
 #include "parser.h"
-
-/*
- * Makes new argument and puts it into collection.
- *
- * \param line line with command
- * \param from start position of argument
- * \param to end position of argument
- * \param args array of arguments
- */
-static void
-make_arg(const char *line, size_t from, size_t to, char **args, size_t count);
+#include "globdef.h"
+#include "io.h"
 
 
-char** parse_cmd(const char *line) {
-        size_t count = 0;
-        size_t line_len = strlen(line);
-        size_t i;
-        size_t prev = 0;
-
-        if (NULL == line) return NULL;
-        /* Parse arguments. Parse strings. Parse everything. Even your life. */
-        for (i = 0; i < line_len; ++i) {
-                if (line[i] == ' ' || line[i] == '\t' || line[i] == '\n') {
-                        make_arg(line, prev, i, NULL);
-                }
-        }
+static bool_t is_space(char c) {
+        return (c == ' ')
+                || (c == '\t');
 }
 
 
-static void
-make_arg(const char *line, size_t from, size_t to, char **args, size_t count) {
-        char *arg = (char*) malloc(to - from + 2);
-        if (NULL == arg) return;
-        strncpy(arg, line, to - from + 1);
-        /* TODO: add `arg` to `args` */
+static bool_t is_space_or_eol(char c) {
+        return is_space(c) || (c == '\n');
+}
+
+
+static void skip_spaces(const char **line) {
+        for (; is_space(**line); (*line)++);
+}
+
+
+static char* get_arg(const char *line) {
+        size_t p = 0;
+        char *arg;
+        for (; line[p] && !is_space(line[p]); ++p);
+        assert(NULL != (arg = (char*) malloc(p)));
+        strncpy(arg, line, p);
+        arg[p] = '\0';
+        return arg;
+}
+
+
+static void put(char **vec, const char *item) {
+        size_t i;
+        assert(vec);
+        assert(item);
+
+        for (i = 0; NULL != vec[i]; ++i);
+        if (i + 1 > ARGS_SIZE) {
+                sayi(i);
+                say("\n");
+                error(E_MANYARGS, 1);
+        }
+        assert(NULL != (vec[i] = (char *) malloc(strlen(item))));
+        strcpy(vec[i], item);
+        vec[i+1] = NULL;
+}
+
+
+char** get_splitted(const char *line) {
+        size_t pos = 0;
+        char **args;
+
+        assert(NULL != (args = (char **) malloc(ARGS_SIZE * sizeof(char *))));
+        args[0] = NULL;
+        while (line[pos]) {
+                char *arg;
+                skip_spaces(&line);
+                if (!line[0]) break;
+                arg = get_arg(line);
+                line += strlen(arg);
+                put(args, arg);
+        }
+        return args;
 }

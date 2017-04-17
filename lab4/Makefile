@@ -12,7 +12,7 @@ kcsh.o: kcsh.c globdef.h io.h command.h
 io.o: io.c globdef.h io.h
 	$(CC) $(CFLAGS) -c io.c -o io.o
 
-parser.o: globdef.h parser.h
+parser.o: parser.c globdef.h parser.h
 	$(CC) $(CFLAGS) -c parser.c -o parser.o
 
 clean:

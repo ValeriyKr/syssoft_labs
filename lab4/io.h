@@ -12,6 +12,7 @@ enum error_in {
         E_NOTERM,
         E_WRITE,
         E_READ,
+        E_MANYARGS,
         E_FORK,
         E_EXEC,
         E_UNDEF
@@ -36,6 +37,23 @@ void reset_term(void);
  * \param message message to say
  */
 void say(const char *message);
+
+
+/*
+ * Says something to stdout, ends it with '\n'
+ *
+ * \param message message to say
+ */
+void sayln(const char *message);
+
+
+/*
+ * Says int to stdout.
+ * Now it works with only non-negative numbers. I don't need smth else.
+ *
+ * \param n number to say.
+ */
+void sayi(int n);
 
 
 /*

@@ -60,11 +60,17 @@ int main(int argc, char *argv[]) {
 
         goodmorning();
         while (1) {
+                size_t it;
                 ssize_t cmd_len;
                 char **args;
                 char *line = get_line();
-                args = parse_cmd(cmd_buff);
+                sayln(line);
+                args = get_splitted(line);
+                for (it = 0; args[it]; ++it) {
+                        sayln(args[it]);
+                }
                 fork_and_exec(args);
+                free(args);
                 free(line);
         }
         goodnight(0);
