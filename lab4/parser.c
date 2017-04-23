@@ -107,7 +107,8 @@ bool_t make_cmdv(char **args, struct cmd **commands) {
         first = last = length = 0;
         for (i = 0; args[i]; ++i) {
                 if (is_separator(args[i][0]) || !args[i+1]) {
-                        if (!args[i+1])
+                        last = i - 1;
+                        if (!is_separator(args[i][0]))
                                 last = i;
                         commands[length++] = make_cmd(args, first, last);
                         commands[length] = NULL;
