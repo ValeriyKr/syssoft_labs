@@ -16,12 +16,12 @@
  * function. After this, you can replenish it with your built-ins by calling
  * `register_builtin` function.
  *
- * I d deaon't think i have to implement methods for deallocation of collection,
+ * I don't think i have to implement methods for deallocation of collection,
  * 'cos they will be invoked only in the end, when programme finishes and
  * deallocations happen automatically.
  */
 
-typedef int (*builtin_func_t)(size_t, char *);
+typedef int (*builtin_func_t)(size_t, char **);
 
 struct builtin {
         char *name;           /* Name of built-in function */

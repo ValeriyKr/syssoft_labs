@@ -25,6 +25,13 @@ int k_exit(size_t argc, char **argv);
 int k_setenv(size_t argc, char **argv);
 
 /**
+ * set NAME=[VALUE]
+ *
+ * Assigns VALUE (or empty string) to variable NAME
+ */
+int k_set(size_t argc, char **argv);
+
+/**
  * ?
  *
  * Shows help.

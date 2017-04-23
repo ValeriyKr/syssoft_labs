@@ -41,6 +41,10 @@ int fork_and_exec(struct cmd *command) {
                 error(E_FORK, 0);
                 return 13;
         } else if (0 == pid) {
+                builtin_func_t bt = builtin(command->argv[0]);
+                if (NULL != bt) {
+                        return bt(command->argc, command->argv);
+                }
                if (-1 == execvp(args[0], args)) {
                        error(E_EXEC, 0);
                        return 14;
@@ -87,11 +91,6 @@ int main(int argc, char *argv[]) {
                         goto clean;
                 }
                 for (i = 0; commands[i]; ++i) {
-                        builtin_func_t bt = builtin(commands[i]->argv[0]);
-                        if (NULL != bt) {
-                                bt(commands[i]->argc, commands[i]->argv);
-                                goto clean;
-                        }
                         sayi(fork_and_exec(commands[i]));
                         free_cmd(commands[i]);
                 }
@@ -120,6 +119,7 @@ void goodmorning() {
 
         if (register_builtin("?", k_help)
                 || register_builtin("cd", k_cd)
+                || register_builtin("set", k_set)
                 || register_builtin("setenv", k_setenv)
                 || register_builtin("exit", k_exit)) {
                 error(E_BREG, 1);
