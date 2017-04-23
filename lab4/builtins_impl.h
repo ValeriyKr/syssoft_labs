@@ -16,4 +16,19 @@ int k_cd(size_t argc, char **argv);
  */
 int k_exit(size_t argc, char **argv);
 
+/**
+ * setenv [NAME [VALUE]]
+ *
+ * Without arguments, prints all environment variables. If NAME was specified,
+ * sets NAME to VALUE if it was specified, otherwise to NULL.
+ */
+int k_setenv(size_t argc, char **argv);
+
+/**
+ * ?
+ *
+ * Shows help.
+ */
+int k_help(size_t argc, char **argv);
+
 #endif /* _BUILTINS_IMPL_H_ */

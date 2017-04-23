@@ -118,8 +118,10 @@ void goodmorning() {
         setenv("prompt", "% ", 1);
         init_builtins();
 
-        if (register_builtin("exit", k_exit)
-                || register_builtin("cd", k_cd)) {
+        if (register_builtin("?", k_help)
+                || register_builtin("cd", k_cd)
+                || register_builtin("setenv", k_setenv)
+                || register_builtin("exit", k_exit)) {
                 error(E_BREG, 1);
         }
 }
