@@ -1,9 +1,19 @@
 #ifndef _GLOBDEF_H_
 #define _GLOBDEF_H_
 
+#ifndef HAVE_DECL_SETENV
+extern int setenv(const char *, const char *, int);
+#endif
+
+
 typedef int bool_t;
 #define true 1
 #define false 0
+
+
+#define TRY_ALLOC(res)            \
+        if (NULL == ((res)))      \
+                error(E_NOMEM, 1);
 
 
 extern int kcsh_argc;

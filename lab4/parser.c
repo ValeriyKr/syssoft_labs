@@ -33,7 +33,7 @@ static char* get_arg(const char *line) {
         size_t p = 0;
         char *arg;
         for (; line[p] && !is_space(line[p]); ++p);
-        assert(NULL != (arg = (char*) malloc(p)));
+        TRY_ALLOC(arg = (char*) malloc(p));
         strncpy(arg, line, p);
         arg[p] = '\0';
         return arg;
@@ -51,7 +51,7 @@ static void put(char **vec, const char *item) {
                 say("\n");
                 error(E_MANYARGS, 1);
         }
-        assert(NULL != (vec[i] = (char *) malloc(strlen(item))));
+        TRY_ALLOC(vec[i] = (char *) malloc(strlen(item)));
         strcpy(vec[i], item);
         vec[i+1] = NULL;
 }
@@ -61,7 +61,7 @@ char** get_splitted(const char *line) {
         size_t pos = 0;
         char **args;
 
-        assert(NULL != (args = (char **) malloc(ARGS_SIZE * sizeof(char *))));
+        TRY_ALLOC(args = (char **) malloc(ARGS_SIZE * sizeof(char *)));
         args[0] = NULL;
         while (line[pos]) {
                 char *arg;
@@ -80,9 +80,9 @@ static struct cmd * make_cmd(char **args, size_t first, size_t last) {
         struct cmd *c;
 
         assert(last >= first);
-        assert(NULL != (c = (struct cmd *) malloc(sizeof(struct cmd))));
-        assert(NULL != (c->argv = (char **) malloc(sizeof(char*) 
-                                        * (last - first + 2))));
+        TRY_ALLOC(c = (struct cmd *) malloc(sizeof(struct cmd)));
+        TRY_ALLOC(c->argv = (char **) malloc(sizeof(char*)
+                                * (last - first + 2)));
 
         /* c->argc  = last - first + 1; */
         c->argc  = 0;

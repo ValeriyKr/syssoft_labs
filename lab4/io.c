@@ -177,7 +177,7 @@ char* get_line() {
         size_t length = 0;
         size_t start;
 
-        assert(NULL != (line = (char *) calloc(1, 1024)));
+        TRY_ALLOC(line = (char *) calloc(1, 1024));
         say(getenv("prompt"));
         start = strlen(getenv("prompt"));
         while (true) {

@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
         kcsh_argc = argc;
         kcsh_argv = argv;
         goodmorning();
-        assert(NULL != (commands = malloc(sizeof(struct cmd) * 1024)));
+        TRY_ALLOC(commands = malloc(sizeof(struct cmd) * 1024));
         while (1) {
                 size_t i;
                 char **args;
