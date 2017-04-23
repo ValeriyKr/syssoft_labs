@@ -14,6 +14,8 @@
 #include "parser.h"
 #include "io.h"
 #include "command.h"
+#include "builtin.h"
+#include "builtins_impl.h"
 
 
 
@@ -85,6 +87,11 @@ int main(int argc, char *argv[]) {
                         goto clean;
                 }
                 for (i = 0; commands[i]; ++i) {
+                        builtin_func_t bt = builtin(commands[i]->argv[0]);
+                        if (NULL != bt) {
+                                bt(commands[i]->argc, commands[i]->argv);
+                                goto clean;
+                        }
                         sayi(fork_and_exec(commands[i]));
                         free_cmd(commands[i]);
                 }
@@ -104,11 +111,17 @@ void sigint_handler(int signal) {
 
 
 void goodmorning() {
+        signal(SIGINT, sigint_handler);
         init_term();
         setenv("shell", kcsh_argv[0], 1);
         /* PS1 in your sweet Bourne-compatible shells */
         setenv("prompt", "% ", 1);
-        signal(SIGINT, sigint_handler);
+        init_builtins();
+
+        if (register_builtin("exit", k_exit)
+                || register_builtin("cd", k_cd)) {
+                error(E_BREG, 1);
+        }
 }
 
 

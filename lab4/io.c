@@ -9,6 +9,9 @@
 #include "io.h"
 
 
+#define ERR_MSG(x) "kcsh: " x
+
+
 static bool_t term_initialized;
 static struct termios savetty;
 
@@ -88,8 +91,6 @@ void sayul(unsigned long n) {
 }
 
 
-#define ERR_MSG(x) "kcsh: " x
-
 void error(enum error_in subj, int do_exit) {
         switch (subj) {
         case E_NOTERM:
@@ -102,6 +103,12 @@ void error(enum error_in subj, int do_exit) {
         {
                 char err[] = ERR_MSG("cannot allocate memory. It's kind of \
                                 pizdec, buy new computer, student!!1");
+                write(ERR, err, sizeof(err));
+                break;
+        }
+        case E_BREG:
+        {
+                char err[] = ERR_MSG("cannot register built-in function");
                 write(ERR, err, sizeof(err));
                 break;
         }
@@ -126,6 +133,12 @@ void error(enum error_in subj, int do_exit) {
         case E_SYNTAX:
         {
                 char err[] = ERR_MSG("syntax error");
+                write(ERR, err, sizeof(err));
+                break;
+        }
+        case E_INVARGS:
+        {
+                char err[] = ERR_MSG("invalid command arguments");
                 write(ERR, err, sizeof(err));
                 break;
         }

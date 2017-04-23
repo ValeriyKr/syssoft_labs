@@ -11,10 +11,12 @@
 enum error_in {
         E_NOTERM,
         E_NOMEM,
+        E_BREG,
         E_WRITE,
         E_READ,
         E_MANYARGS,
         E_SYNTAX,
+        E_INVARGS,
         E_FORK,
         E_EXEC,
         E_UNDEF

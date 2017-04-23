@@ -1,6 +1,8 @@
 #ifndef _GLOBDEF_H_
 #define _GLOBDEF_H_
 
+#include "io.h"
+
 #ifndef HAVE_DECL_SETENV
 extern int setenv(const char *, const char *, int);
 #endif
