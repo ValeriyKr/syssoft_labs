@@ -10,9 +10,11 @@
 
 enum error_in {
         E_NOTERM,
+        E_NOMEM,
         E_WRITE,
         E_READ,
         E_MANYARGS,
+        E_SYNTAX,
         E_FORK,
         E_EXEC,
         E_UNDEF
@@ -49,11 +51,18 @@ void sayln(const char *message);
 
 /*
  * Says int to stdout.
- * Now it works with only non-negative numbers. I don't need smth else.
  *
  * \param n number to say.
  */
 void sayi(int n);
+
+
+/*
+ * Says unsignad long  to stdout.
+ *
+ * \param n number to say.
+ */
+void sayul(unsigned long n);
 
 
 /*

@@ -6,6 +6,10 @@ typedef int bool_t;
 #define false 0
 
 
+extern int kcsh_argc;
+extern char **kcsh_argv;
+
+
 /*
  * SIGINT signal handler
  */

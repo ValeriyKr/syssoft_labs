@@ -14,7 +14,8 @@ static struct termios savetty;
 
 void init_term() {
         struct termios tty;
-        assert(!term_initialized);
+
+        if (term_initialized) return;
         if (!isatty(IN)) {
                 error(E_NOTERM, 1);
         }
@@ -29,7 +30,7 @@ void init_term() {
 
 
 void reset_term() {
-        assert(term_initialized);
+        if (!term_initialized) return;
         tcsetattr(IN, TCSAFLUSH, &savetty);
         term_initialized = false;
 }
@@ -51,10 +52,30 @@ void sayln(const char *message) {
 
 void sayi(int n) {
         char buf[sizeof(int) * 8 + 1];
-        size_t i;
+        size_t i = 0;
 
         /* itoa(n, buf, 10); */
         /* C89 has no itoa. Sad, but true. */
+        if (0 == n) {
+                say("0");
+                return;
+        }
+        if (n < 0) {
+                buf[0] = '0';
+                ++i;
+        }
+        for (; n; ++i, n /= 10) {
+                buf[i] = '0' + (n % 10);
+        }
+        buf[i] = '\0';
+        say(buf);
+}
+
+
+void sayul(unsigned long n) {
+        char buf[sizeof(unsigned long) * 8 + 1];
+        size_t i;
+
         if (0 == n) {
                 say("0");
                 return;
@@ -77,6 +98,13 @@ void error(enum error_in subj, int do_exit) {
                 write(ERR, err, sizeof(err));
                 break;
         }
+        case E_NOMEM:
+        {
+                char err[] = ERR_MSG("cannot allocate memory. It's kind of \
+                                pizdec, buy new computer, student!!1");
+                write(ERR, err, sizeof(err));
+                break;
+        }
         case E_WRITE:
         {
                 char err[] = ERR_MSG("cannot write to stdout");
@@ -92,6 +120,12 @@ void error(enum error_in subj, int do_exit) {
         case E_MANYARGS:
         {
                 char err[] = ERR_MSG("too many arguments");
+                write(ERR, err, sizeof(err));
+                break;
+        }
+        case E_SYNTAX:
+        {
+                char err[] = ERR_MSG("syntax error");
                 write(ERR, err, sizeof(err));
                 break;
         }

@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "parser.h"
+#include "command.h"
 #include "globdef.h"
 #include "io.h"
 
@@ -20,6 +21,11 @@ static bool_t is_space_or_eol(char c) {
 
 static void skip_spaces(const char **line) {
         for (; is_space(**line); (*line)++);
+}
+
+
+static bool_t is_separator(char c) {
+        return (c == ';');
 }
 
 
@@ -41,7 +47,7 @@ static void put(char **vec, const char *item) {
 
         for (i = 0; NULL != vec[i]; ++i);
         if (i + 1 > ARGS_SIZE) {
-                sayi(i);
+                sayul(i);
                 say("\n");
                 error(E_MANYARGS, 1);
         }
@@ -66,4 +72,59 @@ char** get_splitted(const char *line) {
                 put(args, arg);
         }
         return args;
+}
+
+
+static struct cmd * make_cmd(char **args, size_t first, size_t last) {
+        size_t i;
+        struct cmd *c;
+
+        assert(last >= first);
+        assert(NULL != (c = (struct cmd *) malloc(sizeof(struct cmd))));
+        assert(NULL != (c->argv = (char **) malloc(sizeof(char*) 
+                                        * (last - first + 2))));
+
+        /* c->argc  = last - first + 1; */
+        c->argc  = 0;
+        c->in    = 0;
+        c->out   = 0;
+        c->piped = false;
+        c->bg    = false;
+        for (i = first; i <= last; ++i) {
+                c->argv[c->argc++] = args[i];
+                args[i] = NULL;
+        }
+        c->argv[c->argc] = NULL;
+        return c;
+}
+
+
+bool_t make_cmdv(char **args, struct cmd **commands) {
+        size_t first, last, length, i;
+
+        assert(NULL != commands);
+
+        first = last = length = 0;
+        for (i = 0; args[i]; ++i) {
+                if (is_separator(args[i][0]) || !args[i+1]) {
+                        if (!args[i+1])
+                                last = i;
+                        commands[length++] = make_cmd(args, first, last);
+                        commands[length] = NULL;
+                        for (; args[i] && is_separator(args[i][0]); ++i);
+                        first = last = i;
+                } else {
+                        ++last;
+                }
+        }
+        return true;
+}
+
+
+void free_cmd(struct cmd *c) {
+        size_t i;
+        for (i = 0; c->argv[i]; ++i) {
+                free(c->argv[i]);
+        }
+        free(c);
 }

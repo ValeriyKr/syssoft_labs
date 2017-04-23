@@ -1,7 +1,17 @@
 # Made by ValeriyKr #
-CC = clang
-CFLAGS = --std=c89 -Weverything -Wall -Wextra -Wpedantic -O0 \
-		 -Wno-reserved-id-macro
+
+ifdef GCC
+	CC = gcc
+else
+	CC = clang
+endif
+
+ifeq ($(CC), clang)
+		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g \
+			-Weverything -Wno-reserved-id-macro
+else
+		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g
+endif
 
 all: kcsh.o io.o parser.o
 	$(CC) $(CFLAGS) kcsh.o parser.o io.o -o kcsh
