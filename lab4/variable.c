@@ -35,6 +35,16 @@ size_t get_vars_count() {
 
 
 void set_var(const char *name, const char *value) {
+        size_t i;
+        for (i = 0; i < vars_count; ++i) {
+                struct variable *v = &vars[i];
+                if (!strcmp(v->name, name)) {
+                        free(v->value);
+                        TRY_ALLOC(v->value = (char *) malloc(strlen(value)+1));
+                        strcpy(v->value, value);
+                        return;
+                }
+        }
         TRY_ALLOC(vars[vars_count].name = (char *) malloc(strlen(name) + 1));
         TRY_ALLOC(vars[vars_count].value = (char *) malloc(strlen(value) + 1));
         strcpy(vars[vars_count].name, name);

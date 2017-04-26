@@ -4,6 +4,10 @@
 #include "globdef.h"
 
 /**
+ * \file builtin.h
+ * \author kk
+ * \brief Definition of built-in servicing functions.
+ *
  * This files (builtin.h and builtin.c) describes system of kcsh's built-in
  * functions (built-ins).
  *
@@ -19,13 +23,30 @@
  * I don't think i have to implement methods for deallocation of collection,
  * 'cos they will be invoked only in the end, when programme finishes and
  * deallocations happen automatically.
+ *
+ * TODO: to write the new system of built-in functions, with using dynamic
+ * libraries, auto-expansion of built-ins' collection and dealing without manual
+ * registration of them.
  */
 
+/**
+ * \typedef builtin_func_t
+ * \brief Type of built-in function
+ *
+ * Built-in functions shall receive count of arguments and vector of the
+ * arguments. The first argument must be name, which user typed.
+ *
+ * Built-ins return error code, as it does usual programme.
+ */
 typedef int (*builtin_func_t)(size_t, char **);
 
+/**
+ * \struct builtin
+ * Describes one shell built-in function.
+ */
 struct builtin {
-        char *name;           /* Name of built-in function */
-        builtin_func_t command; /* Command to execute        */
+        char *name;             /**< Name of built-in function */
+        builtin_func_t command; /**< Command to execute        */
 };
 
 

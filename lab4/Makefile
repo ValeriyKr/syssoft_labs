@@ -35,6 +35,12 @@ builtins_impl.o: builtins_impl.c builtins_impl.h globdef.h io.h variable.h
 variable.o: variable.c globdef.h variable.h io.h
 	$(CC) $(CFLAGS) -c variable.c -o variable.o
 
+doc: Doxyfile *.h *.c
+	doxygen
+
+doc_tex: doc
+	cd latex && make && cd ..
+
 clean:
 	rm -f ./*.o
 

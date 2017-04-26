@@ -1,9 +1,22 @@
 #ifndef _VARIABLE_H_
 #define _VARIABLE_H_
 
+/**
+ * \file variable.h
+ * \author kk
+ *
+ * Contains definition of `variable` structure and methods for working with
+ * it.
+ */
+
+/**
+ * \struct variable
+ *
+ * Describes internal shell variable.
+ */
 struct variable {
-        char *name;
-        char *value;
+        char *name;  /**< Variable's name  */
+        char *value; /**< Variable's value */
 };
 
 

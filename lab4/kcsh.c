@@ -17,14 +17,24 @@
 #include "builtin.h"
 #include "builtins_impl.h"
 
+/**
+ * \file kcsh.c
+ * \author kk
+ *
+ * \brief csh-like shell
+ *
+ * Implementation of shell, which can be used as C shell.
+ */
 
 
-/* Does fork end executes subprocess.
+
+/**
+ * Does fork end executes subprocess. Also checks if command is ahell built-in.
+ *
  * Executes error(E_WRITE, 1) if is shutted up.
  *
- * \param args arguments which will be passed to process
+ * \param command command for execution.
  * \return exit status of executed command. 0 is usually good.
- * TODO: upd descr
  */
 int fork_and_exec(struct cmd *command);
 
@@ -80,6 +90,8 @@ int main(int argc, char *argv[]) {
         while (1) {
                 size_t i;
                 char **args;
+                int err_code;
+                char *err;
 
                 init_term();
                 line = get_line();
@@ -91,10 +103,14 @@ int main(int argc, char *argv[]) {
                         goto clean;
                 }
                 for (i = 0; commands[i]; ++i) {
-                        sayi(fork_and_exec(commands[i]));
+                        err_code = fork_and_exec(commands[i]);
                         free_cmd(commands[i]);
                 }
+                err = errc_to_a(err_code);
+                set_var("?", err);
+                set_var("_", line);
 clean:
+                free(err);
                 free(line);
                 free(args);
         }

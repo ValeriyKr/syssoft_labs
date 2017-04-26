@@ -8,7 +8,18 @@
 #include "globdef.h"
 #include "io.h"
 
+/**
+ * \file io.c
+ * \author kk
+ *
+ * Implementation of I/O functions.
+ */
 
+
+/**
+ * \def ERROR_MSG(x)
+ * Creates error message
+ */
 #define ERR_MSG(x) "kcsh: " x
 
 
@@ -88,6 +99,29 @@ void sayul(unsigned long n) {
         }
         buf[i] = '\0';
         say(buf);
+}
+
+
+char * errc_to_a(int n) {
+        char *buf;
+        size_t i, j;
+
+        TRY_ALLOC(buf = (char *) malloc(sizeof(char) * 8 + 1));
+        if (0 == n) {
+                buf[0] = '0';
+                buf[1] = '\0';
+                return buf;
+        }
+        for (i = 0; n; ++i, n /= 10) {
+                buf[i] = '0' + (n % 10);
+        }
+        buf[i] = '\0';
+        for (j = 0; j < i/2; ++j) {
+                char c = buf[j];
+                buf[j] = buf[i - j - 1];
+                buf[i - j - 1] = c;
+        }
+        return buf;
 }
 
 
@@ -256,7 +290,7 @@ char* get_line() {
                 case 0x0a:
                         /* Return */
                         say("\n");
-                        /* line[length] = '\0'; */
+                         line[length] = '\0';
                         return line;
 
                 default:
