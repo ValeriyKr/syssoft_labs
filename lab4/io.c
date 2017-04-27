@@ -64,6 +64,13 @@ void sayln(const char *message) {
 }
 
 
+void sayc(const char c) {
+        if (-1 == write(OUT, &c, 1)) {
+                error(E_WRITE, 1);
+        }
+}
+
+
 void sayi(int n) {
         char buf[sizeof(int) * 8 + 1];
         size_t i = 0;
@@ -208,10 +215,12 @@ static void strshl(char *str, size_t step) {
 
 
 static void strshr(char *str, size_t step) {
-        size_t i;
+        size_t i, len;
 
         if (!step) return;
-        for (i = strlen(str); i >= step; --i) {
+        len = strlen(str);
+        str[len+1] = '\0';
+        for (i = len; i >= step; --i) {
                 str[i] = str[i-step];
         }
 }
@@ -232,9 +241,25 @@ char* get_line() {
                 switch (c[0]) {
                 case 0x7f:
                         /* Backspace */
-                        if (pos > 0) {
+                        if (pos == 0) continue;
+                        if (pos == length) {
                                 say("\b \b");
                                 pos--;
+                                length--;
+                                line[pos] = '\0';
+                        } else if (pos > 0) {
+                                size_t i;
+                                sayc('\b');
+                                for (i = pos; i < length; ++i) {
+                                        sayc(line[i]);
+                                }
+                                say("  ");
+                                for (i = pos; i <= length + 1; ++i) {
+                                        sayc('\b');
+                                }
+                                strshl(line+pos, 1);
+                                pos--;
+                                length--;
                         }
                         continue;
 
@@ -305,8 +330,20 @@ char* get_line() {
                         return line;
 
                 default:
-                        say(c);
-                        line[pos] = c[0];
+                        if (pos == length) {
+                                say(c);
+                                line[pos] = c[0];
+                        } else {
+                                size_t i;
+
+                                strshr(line + pos, 1);
+                                line[pos] = c[0];
+                                say(line + pos);
+                                for (i = pos; i < length; ++i) {
+                                        sayc('\b');
+                                }
+
+                        }
                         pos++;
                         length++;
                 }
