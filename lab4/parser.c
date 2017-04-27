@@ -51,8 +51,9 @@ static void put(char **vec, const char *item) {
                 say("\n");
                 error(E_MANYARGS, 1);
         }
-        TRY_ALLOC(vec[i] = (char *) malloc(strlen(item)));
+        TRY_ALLOC(vec[i] = (char *) malloc(strlen(item) + 1));
         strcpy(vec[i], item);
+        vec[i][strlen(item)] = '\0';
         vec[i+1] = NULL;
 }
 
