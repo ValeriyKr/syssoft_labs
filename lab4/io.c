@@ -290,7 +290,18 @@ char* get_line() {
                 case 0x0a:
                         /* Return */
                         say("\n");
-                         line[length] = '\0';
+                        line[length] = '\0';
+                        {
+                                /* Clean line */
+                                /* TODO: make it good */
+                                size_t i;
+                                for (i = 0; i < length; ++i) {
+                                        if (line[i] == '\n' 
+                                            || line[i] == '\r') {
+                                                line[i] = ' ';
+                                        }
+                                }
+                        }
                         return line;
 
                 default:
