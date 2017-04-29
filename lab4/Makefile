@@ -1,7 +1,7 @@
 # Made by ValeriyKr #
 
 # Uncomment next line to use gcc as compiler
-#USE_GCC = true
+USE_GCC = true
 
 ifdef USE_GCC
 	CC = gcc

@@ -1,6 +1,8 @@
 #ifndef _GLOBDEF_H_
 #define _GLOBDEF_H_
 
+#include <sys/types.h>
+
 #include "io.h"
 
 /**
@@ -43,6 +45,12 @@ extern int kcsh_argc;
  * Command line arguments
  */
 extern char **kcsh_argv;
+
+/**
+ * \var kcsh_pid
+ * Process ID (PID) of the programme
+ */
+extern pid_t kcsh_pid;
 
 
 /**

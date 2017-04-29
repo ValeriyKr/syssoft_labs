@@ -11,7 +11,7 @@
  * \param line null-terminated string.
  * \return vector of strings, separated by space.
  */
-char** get_splitted(const char *line);
+char** get_splitted(char *line);
 
 
 /**

@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <signal.h>
 
 #include "globdef.h"
 #include "io.h"
@@ -6,6 +7,12 @@
 #include "variable.h"
 
 extern char **environ;
+
+/**
+ * \file builtins_impl.c
+ *
+ * Implementation of kcsh built-in functions
+ */
 
 
 int k_cd(size_t argc, char **argv) {
@@ -23,7 +30,7 @@ int k_cd(size_t argc, char **argv) {
 
 
 int k_exit(size_t argc, char **argv) {
-        goodnight(0);
+        kill(getppid(), SIGTERM);
         return 0;
 }
 

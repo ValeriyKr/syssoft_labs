@@ -51,10 +51,10 @@ int fork_and_exec(struct cmd *command) {
                 error(E_FORK, 0);
                 return 13;
         } else if (0 == pid) {
-                builtin_func_t bt = builtin(command->argv[0]);
-                if (NULL != bt) {
-                        return bt(command->argc, command->argv);
-                }
+               builtin_func_t bt = builtin(command->argv[0]);
+               if (NULL != bt) {
+                       return bt(command->argc, command->argv);
+               }
                if (-1 == execvp(args[0], args)) {
                        error(E_EXEC, 0);
                        return 14;
@@ -77,6 +77,7 @@ int fork_and_exec(struct cmd *command) {
 
 int kcsh_argc;
 char **kcsh_argv;
+pid_t kcsh_pid;
 
 
 int main(int argc, char *argv[]) {
@@ -85,13 +86,14 @@ int main(int argc, char *argv[]) {
 
         kcsh_argc = argc;
         kcsh_argv = argv;
+        kcsh_pid = getpid();
         goodmorning();
         TRY_ALLOC(commands = malloc(sizeof(struct cmd) * 1024));
         while (1) {
                 size_t i;
                 char **args;
-                int err_code;
-                char *err;
+                int err_code = 0;
+                char *err = NULL;
 
                 init_term();
                 line = get_line();
@@ -125,8 +127,14 @@ void sigint_handler(int signal) {
 }
 
 
+void sigterm_handler(int signal) {
+        goodnight(0);
+}
+
+
 void goodmorning() {
         signal(SIGINT, sigint_handler);
+        signal(SIGTERM, sigterm_handler);
         init_term();
         setenv("shell", kcsh_argv[0], 1);
         /* PS1 in your sweet Bourne-compatible shells */

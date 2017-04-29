@@ -6,6 +6,7 @@
 #include "command.h"
 #include "globdef.h"
 #include "io.h"
+#include "variable.h"
 
 
 static bool_t is_space(char c) {
@@ -58,12 +59,60 @@ static void put(char **vec, const char *item) {
 }
 
 
-char** get_splitted(const char *line) {
-        size_t pos = 0;
+static void unfold_variable(char *line) {
+        const struct variable * vars; 
+        size_t vars_c, i;
+        char *subs, *env;
+
+        if (line[0] != '$') return;
+        vars = get_vars();
+        vars_c = get_vars_count();
+        for (i = 0; i < vars_c; ++i) {
+                size_t n_len = strlen(vars[i].name);
+                if (!strncmp(vars[i].name, line+1, n_len)) {
+                        size_t l_len = strlen(line);
+                        size_t v_len = strlen(vars[i].value);
+                        char *buf;
+                        TRY_ALLOC(buf = (char *) malloc(l_len + v_len + 1));
+                        strcpy(buf, vars[i].value);
+                        strcat(buf, line + n_len + 1);
+                        strcpy(line, buf);
+                        free(buf);
+                        return;
+                }
+        }
+        TRY_ALLOC(subs = (char *) malloc(strlen(line) + 1));
+        for (i = 1; line[i]; ++i) {
+                strncpy(subs, line + 1, i);
+                subs[i+1] = '\0';
+                if (NULL != (env = getenv(subs))) {
+                        size_t v_len = strlen(env);
+                        size_t l_len = strlen(line);
+                        char *buf;
+                        TRY_ALLOC(buf = (char *) malloc(l_len + v_len + 1));
+                        strcpy(buf, env);
+                        strcat(buf, line + i + 1);
+                        strcpy(line, buf);
+                        free(buf);
+                        goto unfold_variable_clean;
+                }
+        }
+unfold_variable_clean:
+        free(subs);
+        return;
+}
+
+
+char** get_splitted(char *line) {
+        size_t pos;
         char **args;
 
         TRY_ALLOC(args = (char **) malloc(ARGS_SIZE * sizeof(char *)));
         args[0] = NULL;
+        for (pos = 0; line[pos]; ++pos) {
+                unfold_variable(line + pos);
+        }
+        pos = 0;
         while (line[pos]) {
                 char *arg;
                 skip_spaces(&line);

@@ -58,16 +58,16 @@ void say(const char *message) {
 }
 
 
-void sayln(const char *message) {
-        say(message);
-        say("\n");
-}
-
-
 void sayc(const char c) {
         if (-1 == write(OUT, &c, 1)) {
                 error(E_WRITE, 1);
         }
+}
+
+
+void sayln(const char *message) {
+        say(message);
+        sayc('\n');
 }
 
 
