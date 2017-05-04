@@ -35,7 +35,19 @@ size_t get_vars_count() {
 
 
 void set_var(const char *name, const char *value) {
+        /* Don't let him to overwrite this. He can, i know. */
+        /* TODO: PID */
+        if (!strcmp(name, "$")) return;
+        if (!strcmp(name, "_")) return;
+        if (!strcmp(name, "?")) return;
+        
+        set_var_force(name, value);
+}
+
+
+void set_var_force(const char *name, const char *value) {
         size_t i;
+
         for (i = 0; i < vars_count; ++i) {
                 struct variable *v = &vars[i];
                 if (!strcmp(v->name, name)) {

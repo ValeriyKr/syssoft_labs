@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
                         free_cmd(commands[i]);
                 }
                 err = errc_to_a(err_code);
-                set_var("?", err);
-                set_var("_", line);
+                set_var_force("?", err);
+                set_var_force("_", line);
 clean:
                 free(err);
                 free(line);
@@ -140,6 +140,9 @@ void goodmorning() {
         /* PS1 in your sweet Bourne-compatible shells */
         setenv("prompt", "% ", 1);
         init_builtins();
+
+        set_var_force("?", "0");
+        set_var_force("_", "");
 
         if (register_builtin("?", k_help)
                 || register_builtin("cd", k_cd)

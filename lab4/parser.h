@@ -31,4 +31,22 @@ bool_t make_cmdv(char **args, struct cmd **commands);
  */
 void free_cmd(struct cmd *c);
 
+
+/**
+ * Checks that symbol is space character.
+ *
+ * \param c character for checking.
+ * \return true if `c` is space.
+ */
+bool_t is_space(char c);
+
+/**
+ * Checks that symbol is space character or end of line.
+ *
+ * \param c character for checking.
+ * \return true if `c` is space or EOL.
+ */
+bool_t is_space_or_eol(char c);
+
+
 #endif /* _PARSER_H_ */

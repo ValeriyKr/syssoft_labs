@@ -9,13 +9,13 @@
 #include "variable.h"
 
 
-static bool_t is_space(char c) {
+bool_t is_space(char c) {
         return (c == ' ')
                 || (c == '\t');
 }
 
 
-static bool_t is_space_or_eol(char c) {
+bool_t is_space_or_eol(char c) {
         return is_space(c) || (c == '\n');
 }
 

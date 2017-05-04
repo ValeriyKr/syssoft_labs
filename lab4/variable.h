@@ -43,12 +43,21 @@ size_t get_vars_count(void);
 
 
 /**
- * Sets (updates) internal variable.
+ * Sets (updates) internal variable, except some of them.
  *
  * \param name name of variable
  * \param value new value of variable
  */
 void set_var(const char *name, const char *value);
+
+
+/**
+ * Sets (updates) internal variable.
+ *
+ * \param name name of variable
+ * \param value new value of variable
+ */
+void set_var_force(const char *name, const char *value);
 
 
 /**

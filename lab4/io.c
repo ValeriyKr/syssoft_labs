@@ -226,18 +226,58 @@ static void strshr(char *str, size_t step) {
 }
 
 
+static char * basedir(const char *path) {
+        ssize_t last_slash, i;
+        size_t path_len = strlen(path);
+        char *basedir;
+        last_slash = path_len;
+        for (i = 0; i < path_len; ++i)
+                if ('/' == path[i])
+                        last_slash = i;
+        if (path_len == last_slash)
+                return NULL;
+        TRY_ALLOC(basedir = (char*) malloc(last_slash + 1));
+        strncpy(basedir, path, last_slash+1);
+        basedir[last_slash+1] = '\0';
+        return basedir;
+}
+
+
+static void complete(char *prefix) {
+        size_t last_space = 0, i;
+        size_t prefix_len = strlen(prefix);
+        char *word;
+        char *bdir;
+        for (i = 0; i < prefix_len; ++i)
+                if (' ' == prefix[i])
+                        last_space = i;
+        bdir = basedir(prefix+last_space);
+        if (NULL == bdir) return;
+        strcpy(prefix+last_space, bdir);
+        free(bdir);
+}
+
+
 char* get_line() {
         char c[] = {'\0', '\0'};
         char *line;
         size_t pos = 0;
         size_t length = 0;
         size_t start;
+        bool_t completion = false;
+        size_t comp_pos;
+        size_t comp_it;
+
 
         TRY_ALLOC(line = (char *) calloc(1, 1024));
         say(getenv("prompt"));
         start = strlen(getenv("prompt"));
         while (true) {
                 if (-1 == read(IN, c, 1)) error(E_READ, 1);
+                if (c[0] != 0x09) {
+                        /* Reset completion */
+                        completion = false;
+                }
                 switch (c[0]) {
                 case 0x7f:
                         /* Backspace */
@@ -265,6 +305,12 @@ char* get_line() {
 
                 case 0x1b:
                 {
+                        if (completion) {
+                                completion = false;
+                                for (; comp_pos > pos; --comp_pos) {
+                                        sayc('\b');
+                                }
+                        }
                         /* Arrow key */
                         read(IN, c, 1);
                         if (c[0] != 0x5b) continue;
@@ -308,9 +354,34 @@ char* get_line() {
                         break;
 
                 case 0x09:
+                {
                         /* Tab */
-                        /* TODO: completion */
+                        char *prefix;
+                        char *postfix;
+                        size_t i;
+
+                        TRY_ALLOC(prefix = (char*) malloc(pos+1));
+                        strncpy(prefix, line, pos);
+                        prefix[pos] = '\0';
+                        TRY_ALLOC(postfix = (char*) malloc(length-pos+2));
+                        strcpy(postfix, line+pos);
+                        complete(prefix);
+                        strcpy(line, prefix);
+                        strcat(line, postfix);
+
+                        for (i = pos; i > 0; --i) sayc('\b');
+                        for (i = 0; i <= length; ++i) sayc(' ');
+                        for (i = 0; i <= length; ++i) sayc('\b');
+                        say(line);
+                        length = strlen(line);
+                        pos = strlen(prefix);
+                        for (i = length; i > pos; --i) sayc('\b');
+
+                        free(prefix);
+                        free(postfix);
+
                         break;
+                }
 
                 case 0x0a:
                         /* Return */
@@ -330,6 +401,7 @@ char* get_line() {
                         return line;
 
                 default:
+just_a_symbol:
                         if (pos == length) {
                                 say(c);
                                 line[pos] = c[0];
