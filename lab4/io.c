@@ -228,8 +228,7 @@ static void strshr(char *str, size_t step) {
 
 
 static char * basedir(const char *path) {
-        ssize_t last_slash, i;
-        size_t path_len = strlen(path);
+        size_t last_slash, i, path_len = strlen(path);
         char *basedir;
         last_slash = path_len;
         for (i = 0; i < path_len; ++i)
@@ -246,7 +245,6 @@ static char * basedir(const char *path) {
 
 static void complete(char **pprefix, size_t skip_count) {
         size_t last_space = 0, i, f_cnt;
-        char *word;
         char *bdir;
         char *prefix = *pprefix;
         size_t prefix_len = strlen(prefix);
@@ -298,18 +296,15 @@ cleanup:
 char* get_line() {
         static bool_t completion = false;
         static size_t comp_pos = 0;
-        static size_t comp_it;
 
         char c[] = {'\0', '\0'};
         char *line;
         size_t pos = 0;
         size_t length = 0;
-        size_t start;
 
 
         TRY_ALLOC(line = (char *) calloc(1, 1024));
         say(getenv("prompt"));
-        start = strlen(getenv("prompt"));
         while (true) {
                 if (-1 == read(IN, c, 1)) error(E_READ, 1);
                 if (c[0] != 0x09) {

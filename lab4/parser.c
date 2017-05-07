@@ -20,7 +20,7 @@ bool_t is_space_or_eol(char c) {
 }
 
 
-static void skip_spaces(const char **line) {
+static void skip_spaces(char ** const line) {
         for (; is_space(**line); (*line)++);
 }
 

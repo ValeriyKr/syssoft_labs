@@ -59,13 +59,4 @@ void set_var(const char *name, const char *value);
  */
 void set_var_force(const char *name, const char *value);
 
-
-/**
- * Assigns value to variable.
- *
- * \param name name of variable.
- * \param value new value of variable.
- */
-void set_var(const char *name, const char *value);
-
 #endif /* _VARIABLE_H_ */

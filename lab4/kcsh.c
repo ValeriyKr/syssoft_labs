@@ -16,6 +16,7 @@
 #include "command.h"
 #include "builtin.h"
 #include "builtins_impl.h"
+#include "variable.h"
 
 /**
  * \file kcsh.c
@@ -40,7 +41,7 @@ int fork_and_exec(struct cmd *command);
 
 
 int fork_and_exec(struct cmd *command) {
-        pid_t pid, wpid;
+        pid_t pid;
         int st;
         char **args = command->argv;
 
@@ -61,7 +62,7 @@ int fork_and_exec(struct cmd *command) {
                }
         } else {
                 while (1) {
-                        wpid = waitpid(pid, &st, WUNTRACED);
+                        waitpid(pid, &st, WUNTRACED);
                         if (WIFEXITED(st))
                                 return WEXITSTATUS(st);
                         if (WIFSIGNALED(st)) {
