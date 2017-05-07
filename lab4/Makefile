@@ -44,6 +44,11 @@ doc: Doxyfile *.h *.c
 doc_tex: doc
 	cd latex && make && cd ..
 
+check_codestyle: *.c *.h
+	@echo ' >> Long lines:'
+	@egrep '.{80,}' *.c *.h
+	@echo ' >> Codestyle checking end'
+
 clean:
 	rm -f ./*.o
 

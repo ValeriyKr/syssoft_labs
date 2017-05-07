@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "globdef.h"
 #include "io.h"
@@ -243,30 +244,67 @@ static char * basedir(const char *path) {
 }
 
 
-static void complete(char *prefix) {
-        size_t last_space = 0, i;
-        size_t prefix_len = strlen(prefix);
+static void complete(char **pprefix, size_t skip_count) {
+        size_t last_space = 0, i, f_cnt;
         char *word;
         char *bdir;
+        char *prefix = *pprefix;
+        size_t prefix_len = strlen(prefix);
+        DIR *dir;
+        struct dirent *dp;
+
+        /* Trying to complete the last word of prefix */
         for (i = 0; i < prefix_len; ++i)
                 if (' ' == prefix[i])
                         last_space = i;
-        bdir = basedir(prefix+last_space);
+        /* Consider it as a path of a file */
+        bdir = basedir(prefix + last_space + 1);
         if (NULL == bdir) return;
-        strcpy(prefix+last_space, bdir);
+
+        /* Look for files in the directory, chosen before */
+        dir = opendir(bdir);
+        if (NULL == dir) goto cleanup;
+        dp = NULL;
+
+        /* Count files */
+        for (f_cnt = 0; NULL != (dp = readdir(dir)); ++f_cnt);
+        closedir(dir);
+        /* Only . and .. */
+        f_cnt -= 2;
+        if (f_cnt == 0) goto cleanup;
+
+        if (skip_count > f_cnt) skip_count %= f_cnt;
+
+        dir = opendir(bdir);
+        if (NULL == dir) goto cleanup;
+        dp = NULL;
+        for (i = 0; i <= skip_count && NULL != (dp = readdir(dir)); ++i) {
+            if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+                --i;
+        }
+        if (NULL == dp) goto cleanup;
+        TRY_ALLOC(*pprefix = (char*) realloc(*pprefix,
+                    strlen(prefix) + strlen(dp->d_name) + 1));
+        prefix = *pprefix;
+        strcpy(prefix + last_space + 1, bdir);
+        strcat(prefix, dp->d_name);
+
+        closedir(dir);
+cleanup:
         free(bdir);
 }
 
 
 char* get_line() {
+        static bool_t completion = false;
+        static size_t comp_pos = 0;
+        static size_t comp_it;
+
         char c[] = {'\0', '\0'};
         char *line;
         size_t pos = 0;
         size_t length = 0;
         size_t start;
-        bool_t completion = false;
-        size_t comp_pos;
-        size_t comp_it;
 
 
         TRY_ALLOC(line = (char *) calloc(1, 1024));
@@ -365,7 +403,7 @@ char* get_line() {
                         prefix[pos] = '\0';
                         TRY_ALLOC(postfix = (char*) malloc(length-pos+2));
                         strcpy(postfix, line+pos);
-                        complete(prefix);
+                        complete(&prefix, comp_pos++);
                         strcpy(line, prefix);
                         strcat(line, postfix);
 
