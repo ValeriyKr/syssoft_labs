@@ -189,6 +189,8 @@ void goodmorning() {
 
 
 void goodnight(int exit_code) {
+        int st;
+        waitpid(-1, &st, 0);
         reset_term();
-        exit(exit_code);
+        _exit(exit_code);
 }

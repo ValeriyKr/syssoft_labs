@@ -32,6 +32,7 @@ int k_cd(size_t argc, char **argv) {
 
 int k_exit(size_t argc, char **argv) {
         kill(getppid(), SIGTERM);
+        _exit(0);
         return 0;
 }
 
