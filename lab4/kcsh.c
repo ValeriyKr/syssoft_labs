@@ -28,7 +28,6 @@
  */
 
 
-
 /**
  * Does fork end executes subprocess. Also checks if command is ahell built-in.
  *
@@ -38,6 +37,9 @@
  * \return exit status of executed command. 0 is usually good.
  */
 int fork_and_exec(struct cmd *command);
+
+
+int pipefd[2];
 
 
 int fork_and_exec(struct cmd *command) {
@@ -52,19 +54,34 @@ int fork_and_exec(struct cmd *command) {
                 error(E_FORK, 0);
                 return 13;
         } else if (0 == pid) {
-               builtin_func_t bt = builtin(command->argv[0]);
-               if (NULL != bt) {
-                       return bt(command->argc, command->argv);
-               }
-               if (-1 == execvp(args[0], args)) {
-                       error(E_EXEC, 0);
-                       return 14;
-               }
+                builtin_func_t bt = builtin(command->argv[0]);
+                if (command->in != 0) {
+                        if (-1 == dup2(command->in, 0)) {
+                                error(E_DUP, 0);
+                                return 15;
+                        }
+                }
+                if (command->out != 1) {
+                        if (-1 == dup2(command->out, 1)) {
+                                error(E_DUP, 1);
+                                return 15;
+                        }
+                }
+                if (command->in != 0) close(pipefd[0]);
+                if (command->out != 1) close(pipefd[1]);
+                if (NULL != bt) {
+                        return bt(command->argc, command->argv);
+                }
+                if (-1 == execvp(args[0], args)) {
+                        error(E_EXEC, 0);
+                        return 14;
+                }
         } else {
                 while (1) {
                         waitpid(pid, &st, WUNTRACED);
-                        if (WIFEXITED(st))
+                        if (WIFEXITED(st)) {
                                 return WEXITSTATUS(st);
+                        }
                         if (WIFSIGNALED(st)) {
                                 say("Killed");
                                 return 0;
@@ -103,10 +120,26 @@ int main(int argc, char *argv[]) {
                 commands[0] = NULL;
                 if (!make_cmdv(args, commands)) {
                         error(E_SYNTAX, 0);
+                        for (i = 0; commands[i]; ++i) {
+                                free_cmd(commands[i]);
+                        }
                         goto clean;
                 }
                 for (i = 0; commands[i]; ++i) {
+                        bool_t did_pipe = false;
+                        if (commands[i]->out != 1) {
+                                if (-1 == pipe(pipefd)) {
+                                        error(E_PIPE, 1);
+                                        return 16;
+                                }
+                                did_pipe = true;
+                                commands[i]->out = pipefd[1];
+                                if (commands[i+1])
+                                        commands[i+1]->in = pipefd[0];
+                        }
                         err_code = fork_and_exec(commands[i]);
+                        if (did_pipe)
+                                close(pipefd[1]);
                         free_cmd(commands[i]);
                 }
                 err = errc_to_a(err_code);

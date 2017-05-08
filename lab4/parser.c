@@ -26,7 +26,7 @@ static void skip_spaces(char ** const line) {
 
 
 static bool_t is_separator(char c) {
-        return (c == ';');
+        return (c == ';' || c == '|');
 }
 
 
@@ -137,7 +137,7 @@ static struct cmd * make_cmd(char **args, size_t first, size_t last) {
         /* c->argc  = last - first + 1; */
         c->argc  = 0;
         c->in    = 0;
-        c->out   = 0;
+        c->out   = 1;
         c->piped = false;
         c->bg    = false;
         for (i = first; i <= last; ++i) {
@@ -151,6 +151,7 @@ static struct cmd * make_cmd(char **args, size_t first, size_t last) {
 
 bool_t make_cmdv(char **args, struct cmd **commands) {
         size_t first, last, length, i;
+        bool_t pipe_next = false;
 
         assert(NULL != commands);
 
@@ -160,12 +161,32 @@ bool_t make_cmdv(char **args, struct cmd **commands) {
                         last = i - 1;
                         if (!is_separator(args[i][0]))
                                 last = i;
-                        commands[length++] = make_cmd(args, first, last);
-                        commands[length] = NULL;
-                        for (; args[i] && is_separator(args[i][0]); ++i);
-                        first = last = i;
-                } else {
-                        ++last;
+                        commands[length] = make_cmd(args, first, last);
+                        if (pipe_next) {
+                                commands[length]->in = 2;
+                        }
+                        if (args[i] && !strcmp(args[i], "|")) {
+                                commands[length]->out = 2;
+                                commands[length]->piped = true;
+                                pipe_next = true;
+                        } else {
+                                pipe_next = false;
+                        }
+                        if (pipe_next) {
+                                if (!args[i+1] || is_separator(args[i+1][0])) {
+                                        commands[length] = NULL;
+                                        return false;
+                                }
+                        }
+                        commands[++length] = NULL;
+                        while (args[i]) {
+                                if (!is_separator(args[i][0])) {
+                                        first = last = i;
+                                        break;
+                                }
+                                ++i;
+                        }
+                        --i;
                 }
         }
         return true;

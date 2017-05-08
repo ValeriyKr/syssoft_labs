@@ -190,6 +190,18 @@ void error(enum error_in subj, int do_exit) {
                 write(ERR, err, sizeof(err));
                 break;
         }
+        case E_DUP:
+        {
+                char err[] = ERR_MSG("something wrong with file descriptors");
+                write(ERR, err, sizeof(err));
+                break;
+        }
+        case E_PIPE:
+        {
+                char err[] = ERR_MSG("cannot pipe commands");
+                write(ERR, err, sizeof(err));
+                break;
+        }
         case E_EXEC:
         {
                 char err[] = ERR_MSG("cannot do exec");

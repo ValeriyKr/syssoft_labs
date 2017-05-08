@@ -42,6 +42,8 @@ enum error_in {
         E_SYNTAX,
         E_INVARGS,
         E_FORK,
+        E_DUP,
+        E_PIPE,
         E_EXEC,
         E_UNDEF
 };
