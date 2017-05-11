@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <string.h>
 #include <dirent.h>
+#include <signal.h>
 
 #include "globdef.h"
 #include "io.h"
@@ -59,7 +60,7 @@ void say(const char *message) {
 }
 
 
-void sayc(const char c) {
+void sayc(char c) {
         if (-1 == write(OUT, &c, 1)) {
                 error(E_WRITE, 1);
         }
@@ -74,7 +75,7 @@ void sayln(const char *message) {
 
 void sayi(int n) {
         char buf[sizeof(int) * 8 + 1];
-        size_t i = 0;
+        size_t i = 0, j;
 
         /* itoa(n, buf, 10); */
         /* C89 has no itoa. Sad, but true. */
@@ -90,6 +91,11 @@ void sayi(int n) {
                 buf[i] = '0' + (n % 10);
         }
         buf[i] = '\0';
+        for (j = 0; j < i / 2; ++j) {
+                char c = buf[j];
+                buf[j] = buf[i-j-1];
+                buf[i-j-1] = c;
+        }
         say(buf);
 }
 
@@ -389,7 +395,7 @@ char* get_line() {
 
                 case 0x03:
                         /* ^C */
-                        sigint_handler(0);
+                        signal_handler(SIGINT);
                         /* TODO: reset line buffer, read again. */
                         break;
 

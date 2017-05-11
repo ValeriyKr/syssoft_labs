@@ -26,14 +26,19 @@ static void skip_spaces(char ** const line) {
 
 
 static bool_t is_separator(char c) {
-        return (c == ';' || c == '|');
+        return (c == ';' || c == '|' || c == '&');
 }
 
 
 static char* get_arg(const char *line) {
         size_t p = 0;
         char *arg;
-        for (; line[p] && !is_space(line[p]); ++p);
+        if (is_separator(line[0])) {
+                p = 1;
+                goto extract_arg;
+        }
+        for (; line[p] && !is_space(line[p]) && !is_separator(line[p]); ++p);
+extract_arg:
         TRY_ALLOC(arg = (char*) malloc(p));
         strncpy(arg, line, p);
         arg[p] = '\0';
@@ -60,29 +65,30 @@ static void put(char **vec, const char *item) {
 
 
 static void unfold_variable(char *line) {
-        const struct variable * vars; 
+        const struct variable *vars; 
         size_t vars_c, i;
         char *subs, *env;
 
         if (line[0] != '$') return;
-        vars = get_vars();
-        vars_c = get_vars_count();
-        for (i = 0; i < vars_c; ++i) {
-                size_t n_len = strlen(vars[i].name);
-                if (!strncmp(vars[i].name, line+1, n_len)) {
+        TRY_ALLOC(subs = (char *) malloc(strlen(line) + 1));
+        for (i = 0; line[i]; ++i);
+        for (; 0 != 1 + i; --i) {
+                strncpy(subs, line + 1, i);
+                subs[i+1] = '\0';
+                if (NULL != (env = get_var(subs))) {
+                        size_t v_len = strlen(env);
                         size_t l_len = strlen(line);
-                        size_t v_len = strlen(vars[i].value);
                         char *buf;
                         TRY_ALLOC(buf = (char *) malloc(l_len + v_len + 1));
-                        strcpy(buf, vars[i].value);
-                        strcat(buf, line + n_len + 1);
+                        strcpy(buf, env);
+                        strcat(buf, line + i + 1);
                         strcpy(line, buf);
                         free(buf);
-                        return;
+                        goto unfold_variable_clean;
                 }
         }
-        TRY_ALLOC(subs = (char *) malloc(strlen(line) + 1));
-        for (i = 1; line[i]; ++i) {
+        for (i = 0; line[i]; ++i);
+        for (; 0 != 1 + i; --i) {
                 strncpy(subs, line + 1, i);
                 subs[i+1] = '\0';
                 if (NULL != (env = getenv(subs))) {
@@ -162,6 +168,7 @@ bool_t make_cmdv(char **args, struct cmd **commands) {
                         if (!is_separator(args[i][0]))
                                 last = i;
                         commands[length] = make_cmd(args, first, last);
+                        /* Pipes */
                         if (pipe_next) {
                                 commands[length]->in = 2;
                         }
@@ -176,6 +183,15 @@ bool_t make_cmdv(char **args, struct cmd **commands) {
                                 if (!args[i+1] || is_separator(args[i+1][0])) {
                                         commands[length] = NULL;
                                         return false;
+                                }
+                        }
+                        /* Background processes */
+                        if (args[i] && !strcmp(args[i], "&")) {
+                                ssize_t j;
+                                commands[length]->bg = true;
+                                for (j = length - 1;
+                                     j >= 0 && commands[j]->out > 1; ++j) {
+                                        commands[j]->bg = true;
                                 }
                         }
                         commands[++length] = NULL;

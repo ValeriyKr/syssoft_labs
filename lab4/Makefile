@@ -1,7 +1,7 @@
 # Made by ValeriyKr #
 
 # Uncomment next line to use gcc as compiler
-USE_GCC = true
+#USE_GCC = true
 
 ifdef USE_GCC
 	CC = gcc
@@ -16,11 +16,12 @@ else
 		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g
 endif
 
-all: kcsh.o io.o parser.o builtin.o builtins_impl.o variable.o
+all: todo kcsh.o io.o parser.o builtin.o builtins_impl.o variable.o job.o
 	$(CC) $(CFLAGS) kcsh.o parser.o io.o builtin.o builtins_impl.o variable.o \
-			-o kcsh
+			job.o -o kcsh
 
-kcsh.o: kcsh.c globdef.h io.h command.h parser.h builtin.h builtins_impl.h
+kcsh.o: kcsh.c globdef.h io.h command.h parser.h builtin.h builtins_impl.h \
+		job.h
 	$(CC) $(CFLAGS) -c kcsh.c -o kcsh.o
 
 io.o: io.c globdef.h io.h
@@ -38,6 +39,9 @@ builtins_impl.o: builtins_impl.c builtins_impl.h globdef.h io.h variable.h
 variable.o: variable.c globdef.h variable.h io.h
 	$(CC) $(CFLAGS) -c variable.c -o variable.o
 
+job.o: job.c job.h
+	$(CC) $(CFLAGS) -c job.c -o job.o
+
 doc: Doxyfile *.h *.c
 	doxygen
 
@@ -48,6 +52,10 @@ check_codestyle: *.c *.h
 	@echo ' >> Long lines:'
 	@egrep '.{80,}' *.c *.h
 	@echo ' >> Codestyle checking end'
+
+todo:
+	@echo "\tTODO:"
+	@echo "\t\t1. Fix sayi() (reverse output)" 
 
 clean:
 	rm -f ./*.o

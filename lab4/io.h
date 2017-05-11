@@ -62,17 +62,25 @@ void reset_term(void);
 
 
 /**
- * Says something to stdout
+ * Says something to stdout.
  *
- * \param message message to say
+ * \param message message to say.
  */
 void say(const char *message);
 
 
 /**
- * Says something to stdout, ends it with '\n'
+ * Says char to stdout.
  *
- * \param message message to say
+ * \param c symbol to say.
+ */
+void sayc(char c);
+
+
+/**
+ * Says something to stdout, ends it with '\n'.
+ *
+ * \param message message to say.
  */
 void sayln(const char *message);
 

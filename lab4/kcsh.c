@@ -17,6 +17,7 @@
 #include "builtin.h"
 #include "builtins_impl.h"
 #include "variable.h"
+#include "job.h"
 
 /**
  * \file kcsh.c
@@ -39,7 +40,7 @@
 int fork_and_exec(struct cmd *command);
 
 
-int pipefd[2];
+static int pipefd[2];
 
 
 int fork_and_exec(struct cmd *command) {
@@ -69,6 +70,7 @@ int fork_and_exec(struct cmd *command) {
                 }
                 if (command->in != 0) close(pipefd[0]);
                 if (command->out != 1) close(pipefd[1]);
+                if (command->bg) setpgid(0, 0);
                 if (NULL != bt) {
                         return bt(command->argc, command->argv);
                 }
@@ -77,6 +79,14 @@ int fork_and_exec(struct cmd *command) {
                         return 14;
                 }
         } else {
+                if (command->bg) {
+                        sayc('[');
+                        sayi(add_job(pid));
+                        say("] ");
+                        sayi(pid);
+                        sayln("");
+                        return 0;
+                }
                 while (1) {
                         waitpid(pid, &st, WUNTRACED);
                         if (WIFEXITED(st)) {
@@ -112,7 +122,19 @@ int main(int argc, char *argv[]) {
                 char **args;
                 int err_code = 0;
                 char *err = NULL;
+                int st;
+                pid_t dead_child_pid;
 
+                if (0 < (dead_child_pid = waitpid(-1, &st, WNOHANG))) {
+                        sayc('[');
+                        sayi(get_job_id(dead_child_pid));
+                        say("] (pid ");
+                        sayi(dead_child_pid);
+                        say(") ");
+                        say("done");
+                        delete_job_by_pid(dead_child_pid);
+                        sayln("");
+                }
                 init_term();
                 line = get_line();
                 reset_term();
@@ -155,20 +177,33 @@ clean:
 }
 
 
-void sigint_handler(int signal) {
-        /* TODO: check all traps */
-        say("^C");
-}
-
-
-void sigterm_handler(int signal) {
-        goodnight(0);
+void signal_handler(int signal) {
+        switch (signal) {
+        case SIGINT:
+                /* TODO: check all traps */
+                say("^C");
+                break;
+        case SIGCHLD:
+        {
+                int st;
+                pid_t pid = waitpid(-1, &st, 0);
+                say("Done: ");
+                sayi(pid);
+                sayc('\n');
+                break;
+        }
+        case SIGTERM:
+                goodnight(0);
+        default:
+                return;
+        }
 }
 
 
 void goodmorning() {
-        signal(SIGINT, sigint_handler);
-        signal(SIGTERM, sigterm_handler);
+        signal(SIGINT, signal_handler);
+        signal(SIGTERM, signal_handler);
+        /*signal(SIGCHLD, signal_handler);*/
         init_term();
         setenv("shell", kcsh_argv[0], 1);
         /* PS1 in your sweet Bourne-compatible shells */
