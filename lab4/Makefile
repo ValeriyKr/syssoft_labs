@@ -54,8 +54,10 @@ check_codestyle: *.c *.h
 	@echo ' >> Codestyle checking end'
 
 todo:
-	@echo "\tTODO:"
-	@echo "\t\t1. Fix sayi() (reverse output)" 
+	@echo "\tTODO list:"
+	@echo "\t\t1. IO redirections" 
+	@echo "\n\tTODO marks in sources:\n"
+	@find . \( -name '*.h' -o -name '*.c' \) -exec grep TODO {} \;
 
 clean:
 	rm -f ./*.o
