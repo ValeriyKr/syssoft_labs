@@ -196,6 +196,12 @@ void error(enum error_in subj, int do_exit) {
                 write(ERR, err, sizeof(err));
                 break;
         }
+        case E_RED_OP:
+        {
+                char err[] = ERR_MSG("cannot open file to redirect streams");
+                write(ERR, err, sizeof(err));
+                break;
+        }
         case E_DUP:
         {
                 char err[] = ERR_MSG("something wrong with file descriptors");

@@ -26,7 +26,7 @@ static void skip_spaces(char ** const line) {
 
 
 static bool_t is_separator(char c) {
-        return (c == ';' || c == '|' || c == '&');
+        return (c == ';' || c == '|' || c == '&' || c == '>' || c == '<');
 }
 
 
@@ -140,12 +140,14 @@ static struct cmd * make_cmd(char **args, size_t first, size_t last) {
         TRY_ALLOC(c->argv = (char **) malloc(sizeof(char*)
                                 * (last - first + 2)));
 
-        /* c->argc  = last - first + 1; */
-        c->argc  = 0;
-        c->in    = 0;
-        c->out   = 1;
-        c->piped = false;
-        c->bg    = false;
+        c->argc        = 0;
+        c->in          = 0;
+        c->out         = 1;
+        c->piped       = false;
+        c->bg          = false;
+        c->redirect    = false;
+        c->rappend     = false;
+        c->redirect_in = false;
         for (i = first; i <= last; ++i) {
                 c->argv[c->argc++] = args[i];
                 args[i] = NULL;
@@ -156,15 +158,15 @@ static struct cmd * make_cmd(char **args, size_t first, size_t last) {
 
 
 bool_t make_cmdv(char **args, struct cmd **commands) {
-        size_t first, last, length, i;
+        size_t first, length, i;
         bool_t pipe_next = false;
 
         assert(NULL != commands);
 
-        first = last = length = 0;
+        first = length = 0;
         for (i = 0; args[i]; ++i) {
                 if (is_separator(args[i][0]) || !args[i+1]) {
-                        last = i - 1;
+                        size_t last = i - 1;
                         if (!is_separator(args[i][0]))
                                 last = i;
                         commands[length] = make_cmd(args, first, last);
@@ -181,9 +183,35 @@ bool_t make_cmdv(char **args, struct cmd **commands) {
                         }
                         if (pipe_next) {
                                 if (!args[i+1] || is_separator(args[i+1][0])) {
+                                        free_cmd(commands[length]);
                                         commands[length] = NULL;
                                         return false;
                                 }
+                        }
+                        /* IO-redirection */
+                        if (args[i] && !strcmp(args[i], ">")) {
+                                if (commands[length]->piped || !args[i+1])
+                                        return false;
+                                if (!strcmp(">", args[i+1])) {
+                                        ++i;
+                                        if (!args[i+1])
+                                                return false;
+                                        commands[length]->rappend = true;
+                                }
+                                commands[length]->redirect = true;
+                                TRY_ALLOC(commands[length]->rfilename =
+                                          (char *)malloc(strlen(args[i+1]+1)));
+                                strcpy(commands[length]->rfilename, args[i+1]);
+                                i += 2;
+                        }
+                        if (args[i] && !strcmp(args[i], "<")) {
+                                if (commands[length]->piped || !args[i+1])
+                                        return false;
+                                commands[length]->redirect_in = true;
+                                TRY_ALLOC(commands[length]->rifilename =
+                                          (char *)malloc(strlen(args[i+1]+1)));
+                                strcpy(commands[length]->rifilename, args[i+1]);
+                                i += 2;
                         }
                         /* Background processes */
                         if (args[i] && !strcmp(args[i], "&")) {

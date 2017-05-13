@@ -25,6 +25,11 @@ struct cmd {
         int out;      /**< First file descriptor                          */
         bool_t piped; /**< True if process connected by pipe to the other */
         bool_t bg;    /**< Must be run in the background                  */
+        bool_t redirect;     /**< True if output is redirected to file    */
+        bool_t rappend;      /**< True if command shall append file       */
+        char *rfilename;     /**< Output redirection filename             */
+        bool_t redirect_in;  /**< True if input is redirected from file   */
+        char *rifilename;    /**< Input redirection filename              */
 
         struct termios term; /**< Terminal state of stopped process */ 
 };

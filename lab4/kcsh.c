@@ -4,11 +4,14 @@
  */
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "globdef.h"
 #include "parser.h"
@@ -71,6 +74,37 @@ int fork_and_exec(struct cmd *command) {
                 if (command->in != 0) close(pipefd[0]);
                 if (command->out != 1) close(pipefd[1]);
                 if (command->bg) setpgid(0, 0);
+                if (command->redirect) {
+                        int fd;
+                        if (command->rappend) {
+                                fd = open(command->rfilename,
+                                          O_RDWR | O_CREAT | O_APPEND, S_IRWXU);
+                        } else {
+                                fd = open(command->rfilename,
+                                          O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
+                        }
+                        if (-1 == fd) {
+                                error(E_RED_OP, 0);
+                                return 16;
+                        }
+                        if (-1 == dup2(fd, 1)) {
+                                error(E_DUP, 0);
+                                return 15;
+                        }
+                        close(fd);
+                }
+                if (command->redirect_in) {
+                        int fd = open(command->rifilename, O_RDONLY, S_IRWXU);
+                        if (-1 == fd) {
+                                error(E_RED_OP, 0);
+                                return 16;
+                        }
+                        if (-1 == dup2(fd, 0)) {
+                                error(E_DUP, 0);
+                                return 15;
+                        }
+                        close(fd);
+                }
                 if (NULL != bt) {
                         return bt(command->argc, command->argv);
                 }
