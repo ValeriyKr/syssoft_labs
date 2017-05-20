@@ -40,7 +40,6 @@ shmem_main:
 
         if (-1 == (long) (shmaddr = (struct state*) shmat(shmid, NULL, 0))) {
                 perror("shmat");
-                shmctl(shmid, IPC_RMID, NULL);
                 _exit(4);
         }
 
@@ -52,7 +51,6 @@ shmem_main:
         printf("Load average for 15 minutes: %lf\n", shmaddr->loadavg[2]);
 
         shmdt(shmaddr);
-        shmctl(shmid, IPC_RMID, NULL);
 
         return 0;
 }
@@ -70,7 +68,6 @@ int msg_main() {
 
         if (-1 == msgrcv(msgid, &msg_buf, sizeof(struct state), 1, 0)) {
                 perror("msgrcv");
-                msgctl(msgid, IPC_RMID, NULL);
                 _exit(4);
         }
         state = (struct state *) &(msg_buf.mtext);
@@ -81,8 +78,6 @@ int msg_main() {
         printf("Load average for 1 minute: %lf\n", state->loadavg[0]);
         printf("Load average for 5 minutes: %lf\n", state->loadavg[1]);
         printf("Load average for 15 minutes: %lf\n", state->loadavg[2]);
-
-        msgctl(msgid, IPC_RMID, NULL);
 
         return 0;
 }
