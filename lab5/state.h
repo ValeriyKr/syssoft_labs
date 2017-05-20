@@ -2,7 +2,6 @@
 #define _STATE_H_
 
 extern int getloadavg(double loadavg[], int nelem);
-extern int usleep(__useconds_t usec);
 
 typedef int bool_t;
 #define true 1
