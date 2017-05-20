@@ -28,5 +28,7 @@ int main() {
         printf("Load average for 5 minutes: %lf\n", shmaddr->loadavg[1]);
         printf("Load average for 15 minutes: %lf\n", shmaddr->loadavg[2]);
 
+        shmdt(shmaddr);
+
         return 0;
 }
