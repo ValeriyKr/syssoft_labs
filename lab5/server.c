@@ -56,7 +56,7 @@ static void sighandler(int signo) {
 int main() {
         int sleep_ret;
         int i;
-        for (i = 1; i < 30; ++i, signal(i, sighandler));
+        for (i = 1; i < 30; signal(i++, sighandler));
         if (-1 == time(&state.start_time)) {
                 perror("time");
                 _exit(1);
