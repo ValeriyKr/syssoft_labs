@@ -11,9 +11,9 @@ endif
 
 ifeq ($(CC), clang)
 		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g \
-			-Weverything -Wno-reserved-id-macro -lrt -pthread
+			-Weverything -Wno-reserved-id-macro -lrt -pthreads
 else
-		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g -lrt -pthread
+		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
 endif
 
 all: server client multithread
