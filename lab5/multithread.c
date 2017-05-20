@@ -13,26 +13,26 @@ static size_t len;
 
 static union lock {
         sem_t sem;
-} sync;
+} snc;
 
 
 static void init_sync() {
-        sem_init(&sync.sem, 0, 1);
+        sem_init(&snc.sem, 0, 1);
 }
 
 
 static void lock() {
-        sem_wait(&sync.sem);
+        sem_wait(&snc.sem);
 }
 
 
 static void unlock() {
-        sem_post(&sync.sem);
+        sem_post(&snc.sem);
 }
 
 
 static void destroy_sync() {
-        sem_destroy(&sync.sem);
+        sem_destroy(&snc.sem);
 }
 
 
