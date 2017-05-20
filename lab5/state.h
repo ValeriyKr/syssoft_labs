@@ -1,11 +1,10 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
+#include "globdef.h"
+
 extern int getloadavg(double loadavg[], int nelem);
 
-typedef int bool_t;
-#define true 1
-#define false 0
 
 #define S_FNAME "/kk2987"
 
