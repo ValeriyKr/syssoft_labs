@@ -66,7 +66,8 @@ int msg_main() {
                 _exit(3);
         }
 
-        if (-1 == msgrcv(msgid, &msg_buf, sizeof(struct state), 1, 0)) {
+        if (-1 == msgrcv(msgid, &msg_buf, sizeof(struct state), 1,
+                         IPC_NOWAIT)) {
                 perror("msgrcv");
                 _exit(4);
         }
