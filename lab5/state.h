@@ -17,4 +17,10 @@ struct state {
         double loadavg[3];
 };
 
+
+struct msg_buf {
+        long mtype;
+        char mtext[sizeof(struct state)];
+};
+
 #endif /* _STATE_H_ */

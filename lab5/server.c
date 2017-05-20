@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/msg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -14,6 +15,7 @@
 
 static struct state state;
 static int shmid = -1;
+static int msgid = -1;
 static struct state *shmaddr;
 
 
@@ -22,6 +24,8 @@ static bool_t update() {
         if (-1 == time(&current_time)) {
                 perror("time");
                 shmdt(shmaddr);
+                shmctl(shmid, IPC_RMID, NULL);
+                msgctl(msgid, IPC_RMID, NULL);
                 _exit(1);
         }
         if (current_time - state.start_time > state.working_time) {
@@ -29,6 +33,8 @@ static bool_t update() {
                 if (-1 == getloadavg(state.loadavg, 3)) {
                         perror("loadavg");
                         shmdt(shmaddr);
+                        shmctl(shmid, IPC_RMID, NULL);
+                        msgctl(msgid, IPC_RMID, NULL);
                         _exit(2);
                 }
                 return true;
@@ -37,9 +43,9 @@ static bool_t update() {
 }
 
 
-static void sighandler(int signo) {
+static void shm_sighandler(int signo) {
         if (signo == SIGUSR1) {
-                signal(signo, sighandler);
+                signal(signo, shm_sighandler);
                 printf("Working time: %lu\nPID: %d\nUID: %u\nGID: %u\n",
                                 state.working_time, state.pid, state.uid,
                                 state.gid);
@@ -48,15 +54,18 @@ static void sighandler(int signo) {
                 printf("Load average for 15 minutes: %lf\n", state.loadavg[2]);
         } else {
                 shmdt(shmaddr);
+                shmctl(shmid, IPC_RMID, NULL);
                 _exit(0);
         }
 }
 
 
-int main() {
+int msg_main(void);
+
+
+int main(int c, char *v[]) {
         int sleep_ret;
         int i;
-        for (i = 1; i < 30; signal(i++, sighandler));
         if (-1 == time(&state.start_time)) {
                 perror("time");
                 _exit(1);
@@ -65,6 +74,24 @@ int main() {
         state.uid = getuid();
         state.gid = getgid();
 
+        switch (c) {
+        case 1:
+                goto shmem_main;
+        case 2:
+                if (!strcmp(v[1], "msg")) {
+                        return msg_main();
+                } else if (!strcmp(v[1], "mmap")) {
+                        /* mmap_main(); */
+                } else if (!strcmp(v[1], "shm")) {
+                        goto shmem_main;
+                }
+        default:
+                fprintf(stderr, "USAGE: %s [shm|msg|mmap]\n", v[0]);
+                _exit(0);
+        }
+
+shmem_main:
+        for (i = 1; i < 30; signal(i++, shm_sighandler));
         if (-1 == (shmid = shmget(2987, sizeof(struct state),
                                         IPC_CREAT | 0666))) {
                 perror("shmget");
@@ -80,6 +107,7 @@ int main() {
                         if (EINTR == errno) goto force_update;
                         perror("usleep");
                         shmdt(shmaddr);
+                        shmctl(shmid, IPC_RMID, NULL);
                         _exit(5);
                 }
 force_update:
@@ -87,4 +115,46 @@ force_update:
                         memcpy(shmaddr, &state, sizeof(struct state));
                 }
         }
+}
+
+
+static void msg_sighandler(int signo) {
+        if (signo == SIGUSR1) {
+                signal(signo, shm_sighandler);
+                kill(getpid(), signo);
+        } else {
+                msgctl(msgid, IPC_RMID, NULL);
+                _exit(0);
+        }
+}
+
+
+int msg_main() {
+        int i, sleep_ret;
+        for (i = 1; i < 30; signal(i++, msg_sighandler));
+        if (-1 == (msgid = msgget(2987, IPC_CREAT | 0666))) {
+                perror("msgget");
+                _exit(3);
+        }
+
+        while (sleep_ret = usleep(1000), true) {
+                if (-1 == sleep_ret) {
+                        if (EINTR == errno) goto force_update;
+                        perror("usleep");
+                        _exit(5);
+                }
+force_update:
+                if (update()) {
+                        struct msg_buf msg_buf;
+                        msg_buf.mtype = 1;
+                        memcpy(msg_buf.mtext, &state, sizeof(state));
+                        if (-1 == msgsnd(msgid, &msg_buf,
+                            sizeof(msg_buf.mtext), 0)) {
+                                perror("msgsnd");
+                                msgctl(msgid, IPC_RMID, NULL);
+                                _exit(6);
+                        }
+                }
+        }
+        return 0;
 }
