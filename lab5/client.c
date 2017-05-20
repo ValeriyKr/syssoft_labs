@@ -61,7 +61,7 @@ int msg_main() {
         struct msg_buf msg_buf;
         struct state *state;
 
-        if (-1 == (msgid = msgget(2987, IPC_CREAT | 0666))) {
+        if (-1 == (msgid = msgget(2987, 0666))) {
                 perror("msgget");
                 _exit(3);
         }
