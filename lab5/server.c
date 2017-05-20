@@ -3,6 +3,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -17,6 +20,8 @@ static struct state state;
 static int shmid = -1;
 static int msgid = -1;
 static struct state *shmaddr;
+static int fd = -1;
+static struct state *mapaddr;
 
 
 static bool_t update() {
@@ -35,6 +40,8 @@ static bool_t update() {
                         shmdt(shmaddr);
                         shmctl(shmid, IPC_RMID, NULL);
                         msgctl(msgid, IPC_RMID, NULL);
+                        munmap(mapaddr, sizeof(struct state));
+                        shm_unlink(S_FNAME);
                         _exit(2);
                 }
                 return true;
@@ -61,6 +68,7 @@ static void shm_sighandler(int signo) {
 
 
 int msg_main(void);
+int mmap_main(void);
 
 
 int main(int c, char *v[]) {
@@ -81,7 +89,7 @@ int main(int c, char *v[]) {
                 if (!strcmp(v[1], "msg")) {
                         return msg_main();
                 } else if (!strcmp(v[1], "mmap")) {
-                        /* mmap_main(); */
+                        return mmap_main();
                 } else if (!strcmp(v[1], "shm")) {
                         goto shmem_main;
                 }
@@ -140,6 +148,7 @@ int msg_main() {
         while (sleep_ret = usleep(1000), true) {
                 if (-1 == sleep_ret) {
                         if (EINTR == errno) goto force_update;
+                        msgctl(msgid, IPC_RMID, NULL);
                         perror("usleep");
                         _exit(5);
                 }
@@ -157,4 +166,51 @@ force_update:
                 }
         }
         return 0;
+}
+
+
+static void mmap_sighandler(int signo) {
+        if (signo == SIGUSR1) {
+                signal(signo, shm_sighandler);
+                kill(getpid(), signo);
+        } else {
+                munmap(mapaddr, sizeof(struct state));
+                shm_unlink(S_FNAME);
+                _exit(0);
+        }
+}
+
+
+int mmap_main() {
+        int i, sleep_ret;
+        for (i = 1; i < 30; signal(i++, mmap_sighandler));
+        if (-1 == (fd = shm_open(S_FNAME, O_CREAT | O_RDWR, S_IRWXU))) {
+                perror("shm_open");
+                _exit(3);
+        }
+        if (-1 == ftruncate(fd, sizeof(struct state))) {
+                perror("ftruncate");
+                shm_unlink(S_FNAME);                
+                _exit(7);
+        }
+        if (MAP_FAILED == (mapaddr = mmap(NULL, sizeof(struct state),
+            PROT_WRITE, MAP_SHARED, fd, 0))) {
+                perror("mmap");
+                shm_unlink(S_FNAME);                
+                _exit(4);
+        }
+
+        while (sleep_ret = usleep(1000), true) {
+                if (-1 == sleep_ret) {
+                        if (EINTR == errno) goto force_update;
+                        perror("usleep");
+                        munmap(mapaddr, sizeof(struct state));
+                        shm_unlink(S_FNAME);
+                        _exit(5);
+                }
+force_update:
+                if (update()) {
+                        memcpy(mapaddr, &state, sizeof(state));
+                }
+        }
 }

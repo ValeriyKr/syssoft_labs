@@ -11,9 +11,9 @@ endif
 
 ifeq ($(CC), clang)
 		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g \
-			-Weverything -Wno-reserved-id-macro
+			-Weverything -Wno-reserved-id-macro -lrt
 else
-		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g
+		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g -lrt
 endif
 
 all: server client

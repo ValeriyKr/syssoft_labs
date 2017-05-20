@@ -3,13 +3,17 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "state.h"
 
 
-static int msg_main(void);
+int msg_main(void);
+int mmap_main(void);
 
 
 int main(int c, char *v[]) {
@@ -23,7 +27,7 @@ int main(int c, char *v[]) {
                 if (!strcmp(v[1], "msg")) {
                         return msg_main();
                 } else if (!strcmp(v[1], "mmap")) {
-                        /* mmap_main(); */
+                        return mmap_main();
                 } else if (!strcmp(v[1], "shm")) {
                         goto shmem_main;
                 }
@@ -79,6 +83,36 @@ int msg_main() {
         printf("Load average for 1 minute: %lf\n", state->loadavg[0]);
         printf("Load average for 5 minutes: %lf\n", state->loadavg[1]);
         printf("Load average for 15 minutes: %lf\n", state->loadavg[2]);
+
+        return 0;
+}
+
+
+int mmap_main() {
+        int fd;
+        struct state *state;
+        if (-1 == (fd = shm_open(S_FNAME, O_RDWR, 0))) {
+                perror("shm_open");
+                _exit(3);
+        }
+
+        if (MAP_FAILED == (state = mmap(NULL, sizeof(struct state), PROT_READ,
+                                        MAP_SHARED, fd, 0))) {
+                perror("mmap");
+                _exit(4);
+        }
+
+        printf("Working time: %lu\nSrv pid: %d\nSrv uid: %u\nSrv gid: %u\n",
+                        state->working_time, state->pid, state->uid,
+                        state->gid);
+        printf("Load average for 1 minute: %lf\n", state->loadavg[0]);
+        printf("Load average for 5 minutes: %lf\n", state->loadavg[1]);
+        printf("Load average for 15 minutes: %lf\n", state->loadavg[2]);
+
+        if (-1 == munmap(state, sizeof(struct state))) {
+                perror("munmap");
+                _exit(5);
+        }
 
         return 0;
 }

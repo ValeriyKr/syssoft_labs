@@ -7,6 +7,8 @@ typedef int bool_t;
 #define true 1
 #define false 0
 
+#define S_FNAME "/kk2987"
+
 
 struct state {
         time_t start_time;
