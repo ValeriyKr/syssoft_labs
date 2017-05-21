@@ -162,7 +162,7 @@ int main(int c, char *v[]) {
         for (sleep_ret = 1; sleep_ret < 30; signal(sleep_ret++, sighandler));
 
         if (c != 2) {
-                fprintf(stderr, "USAGE: %s [sem|ipc|none]\n", v[0]);
+                fprintf(stderr, "USAGE: %s <sem|ipc|none>\n", v[0]);
                 _exit(-1);
         } else {
                 if (!strcmp(v[1], "sem")) {

@@ -12,6 +12,9 @@
 
 static char *toy;
 static size_t len;
+static int tmain;
+static int treverse;
+static int tcap;
 
 
 static pthread_mutex_t mutex;
@@ -50,8 +53,9 @@ static void destroy_sync() {
 
 
 static void* reverse(void *arg) {
-        size_t i, j, sleep_ret;
-        while (sleep_ret = usleep(1000), true) {
+        size_t i, j;
+        int sleep_ret;
+        while (sleep_ret = usleep(treverse), true) {
                 if (-1 == sleep_ret) {
                         perror("usleep");
                         _exit(2);
@@ -71,8 +75,9 @@ static void* reverse(void *arg) {
 
 
 static void* change_register(void *arg) {
-        size_t i, j, sleep_ret;
-        while (sleep_ret = usleep(1500), true) {
+        size_t i, j;
+        int sleep_ret;
+        while (sleep_ret = usleep(tcap), true) {
                 if (-1 == sleep_ret) {
                         perror("usleep");
                         _exit(2);
@@ -98,11 +103,25 @@ static void sighandler(int signo) {
 }
 
 
+static void usage(char *v) __attribute__((noreturn)) {
+        fprintf(stderr, "USAGE: %s <tmain> <treverse> <tcap>\n", v);
+        _exit(-1);
+}
+
+
 int main(int c, char *v[]) {
         int sleep_ret;
         size_t i = 0;
 
         for (sleep_ret = 1; sleep_ret < 30; signal(sleep_ret++, sighandler));
+
+        if (c != 4) {
+                usage(*v);
+        }
+
+        tmain = atoi(v[1]);
+        treverse = atoi(v[2]);
+        tcap = atoi(v[3]);
 
         if (NULL == (toy = (char *) malloc(57))) {
                 perror("malloc");
@@ -121,7 +140,7 @@ int main(int c, char *v[]) {
                 _exit(3);
         }
         init_sync();
-        while (sleep_ret = usleep(1000000), i = 1 - i, true) {
+        while (sleep_ret = usleep(tmain), i = 1 - i, true) {
                 if (-1 == sleep_ret) {
                         perror("usleep");
                         _exit(2);
