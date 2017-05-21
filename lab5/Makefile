@@ -16,7 +16,7 @@ else
 		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
 endif
 
-all: server client multithread
+all: server client multithread multithread6
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
@@ -35,6 +35,12 @@ multithread: multithread.o
 
 multithread.o: multithread.c
 	$(CC) $(CFLAGS) -c multithread.c -o multithread.o
+
+multithread6: multithread6.o
+	$(CC) $(CFLAGS) multithread6.o -o multithread6
+
+multithread6.o: multithread6.c
+	$(CC) $(CFLAGS) -c multithread6.c -o multithread6.o
 
 clean:
 	rm -f ./*.o

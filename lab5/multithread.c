@@ -21,7 +21,8 @@ static union lock {
 
 static enum sync_type {
         SEM,
-        IPC_SEM
+        IPC_SEM,
+        NONE
 } sync_type;
 
 
@@ -44,6 +45,8 @@ static void init_sync() {
                         _exit(5);
                 }
                 break;
+        case NONE:
+                break;
         default:
                 fputs(stderr, "Synchronization type choosing is broken!\n");
                 _exit(-2);
@@ -65,6 +68,8 @@ static void lock() {
                 semop(snc.ipc_sem, &sops, 1);
                 break;
         }
+        case NONE:
+                break;
         default:
                 fputs(stderr, "Synchronization type choosing is broken!\n");
                 _exit(-2);
@@ -86,6 +91,8 @@ static void unlock() {
                 semop(snc.ipc_sem, &sops, 1);
                 break;
         }
+        case NONE:
+                break;
         default:
                 fputs(stderr, "Synchronization type choosing is broken!\n");
                 _exit(-2);
@@ -100,6 +107,8 @@ static void destroy_sync() {
                 break;
         case IPC_SEM:
                 semctl(snc.ipc_sem, 0, IPC_RMID);
+                break;
+        case NONE:
                 break;
         default:
                 fputs(stderr, "Synchronization type choosing is broken!\n");
@@ -153,15 +162,17 @@ int main(int c, char *v[]) {
         for (sleep_ret = 1; sleep_ret < 30; signal(sleep_ret++, sighandler));
 
         if (c != 2) {
-                fprintf(stderr, "USAGE: %s [sem|ipc]\n", v[0]);
+                fprintf(stderr, "USAGE: %s [sem|ipc|none]\n", v[0]);
                 _exit(-1);
         } else {
                 if (!strcmp(v[1], "sem")) {
                         sync_type = SEM;
                 } else if (!strcmp(v[1], "ipc")) {
                         sync_type = IPC_SEM;
+                } else if (!strcmp(v[1], "none")) {
+                        sync_type = NONE;
                 } else {
-                        fprintf(stderr, "USAGE: %s [sem|ipc]\n", v[0]);
+                        fprintf(stderr, "USAGE: %s [sem|ipc|none]\n", v[0]);
                         _exit(-1);
                 }
         }
