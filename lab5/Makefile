@@ -10,13 +10,13 @@ else
 endif
 
 ifeq ($(CC), clang)
-		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g \
+		CFLAGS = --std=gnu89 -Wall -Wextra -pedantic -O0 -g \
 			-Weverything -Wno-reserved-id-macro -lrt -pthreads
 else
-		CFLAGS = --std=c89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
+		CFLAGS = --std=gnu89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
 endif
 
-all: server client multithread multithread6
+all: server client multithread multithread6 multithread7
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
@@ -41,6 +41,12 @@ multithread6: multithread6.o
 
 multithread6.o: multithread6.c
 	$(CC) $(CFLAGS) -c multithread6.c -o multithread6.o
+
+multithread7: multithread7.o
+	$(CC) $(CFLAGS) multithread7.o -o multithread7
+
+multithread7.o: multithread7.c
+	$(CC) $(CFLAGS) -c multithread7.c -o multithread7.o
 
 clean:
 	rm -f ./*.o

@@ -48,7 +48,7 @@ static void init_sync() {
         case NONE:
                 break;
         default:
-                fputs(stderr, "Synchronization type choosing is broken!\n");
+                fputs("Synchronization type choosing is broken!\n", stderr);
                 _exit(-2);
         }
 }
@@ -71,7 +71,7 @@ static void lock() {
         case NONE:
                 break;
         default:
-                fputs(stderr, "Synchronization type choosing is broken!\n");
+                fputs("Synchronization type choosing is broken!\n", stderr);
                 _exit(-2);
         }
 }
@@ -94,7 +94,7 @@ static void unlock() {
         case NONE:
                 break;
         default:
-                fputs(stderr, "Synchronization type choosing is broken!\n");
+                fputs("Synchronization type choosing is broken!\n", stderr);
                 _exit(-2);
         }
 }
@@ -111,7 +111,7 @@ static void destroy_sync() {
         case NONE:
                 break;
         default:
-                fputs(stderr, "Synchronization type choosing is broken!\n");
+                fputs("Synchronization type choosing is broken!\n", stderr);
                 _exit(-2);
         }
 }
@@ -151,6 +151,7 @@ static void* change_register(void *arg) {
 
 static void sighandler(int signo) {
         destroy_sync();
+        _exit(0);
 }
 
 
