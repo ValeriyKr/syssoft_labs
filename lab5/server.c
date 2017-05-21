@@ -74,6 +74,7 @@ int mmap_main(void);
 int main(int c, char *v[]) {
         int sleep_ret;
         int i;
+        char *bname;
         if (-1 == time(&state.start_time)) {
                 perror("time");
                 _exit(1);
@@ -82,16 +83,30 @@ int main(int c, char *v[]) {
         state.uid = getuid();
         state.gid = getgid();
 
+        for (bname = v[0], i = 0; v[0][i]; ++i) {
+                if ('/' == v[0][i])
+                        bname = v[0] + i;
+        }
+        if (*bname == '/') bname++;
         switch (c) {
         case 1:
-                goto shmem_main;
-        case 2:
-                if (!strcmp(v[1], "msg")) {
-                        return msg_main();
-                } else if (!strcmp(v[1], "mmap")) {
-                        return mmap_main();
-                } else if (!strcmp(v[1], "shm")) {
+                if (!strcmp("shmserver", bname)) {
+                        puts("1234\n");
                         goto shmem_main;
+                } else if (!strcmp("msgserver", bname)) {
+                        return msg_main();
+                } else if (!strcmp("mmapserver", bname)) {
+                        return mmap_main();
+                }
+        case 2:
+                if (!strcmp(bname, "server")) {
+                        if (!strcmp(v[1], "msg")) {
+                                return msg_main();
+                        } else if (!strcmp(v[1], "mmap")) {
+                                return mmap_main();
+                        } else if (!strcmp(v[1], "shm")) {
+                                goto shmem_main;
+                        }
                 }
         default:
                 fprintf(stderr, "USAGE: %s [shm|msg|mmap]\n", v[0]);

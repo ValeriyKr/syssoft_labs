@@ -159,19 +159,34 @@ int main(int c, char *v[]) {
         int sleep_ret;
         size_t i = 0;
         void* (*funcs[2])(void *) = { reverse, change_register };
+        char *bname;
 
         for (sleep_ret = 1; sleep_ret < 30; signal(sleep_ret++, sighandler));
 
-        if (c != 2) {
+        for (bname = v[0], i = 0; v[0][i]; ++i) {
+                if ('/' == v[0][i])
+                        bname = v[0] + i;
+        }
+        if (*bname == '/') bname++;
+        if (c > 2) {
                 fprintf(stderr, "USAGE: %s <sem|ipc|none>\n", v[0]);
                 _exit(-1);
-        } else {
+        } else if (c == 2 && !strcmp(bname, "multithread")) {
                 if (!strcmp(v[1], "sem")) {
                         sync_type = SEM;
                 } else if (!strcmp(v[1], "ipc")) {
                         sync_type = IPC_SEM;
                 } else if (!strcmp(v[1], "none")) {
                         sync_type = NONE;
+                } else {
+                        fprintf(stderr, "USAGE: %s [sem|ipc|none]\n", v[0]);
+                        _exit(-1);
+                }
+        } else {
+                if (!strcmp(bname, "multithread4")) {
+                        sync_type = SEM;
+                } else if (!strcmp(bname, "multithread5")) {
+                        sync_type = IPC_SEM;
                 } else {
                         fprintf(stderr, "USAGE: %s [sem|ipc|none]\n", v[0]);
                         _exit(-1);

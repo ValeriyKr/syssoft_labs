@@ -21,6 +21,9 @@ all: server client multithread multithread6 multithread7 unixserver \
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
+	cp server shmserver
+	cp server msgserver
+	cp server mmapserver
 
 server.o: server.c state.h
 	$(CC) $(CFLAGS) -c server.c -o server.o
@@ -33,6 +36,8 @@ client.o: client.c state.h
 
 multithread: multithread.o
 	$(CC) $(CFLAGS) multithread.o -o multithread
+	cp multithread multithread4
+	cp multithread multithread5
 
 multithread.o: multithread.c
 	$(CC) $(CFLAGS) -c multithread.c -o multithread.o
