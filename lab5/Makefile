@@ -16,7 +16,8 @@ else
 		CFLAGS = --std=gnu89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
 endif
 
-all: server client multithread multithread6 multithread7 unixserver unixclient
+all: server client multithread multithread6 multithread7 unixserver \
+		unixclient signalserver
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
@@ -59,6 +60,12 @@ unixclient: unixclient.o
 
 unixclient.o: unixclient.c state.h
 	$(CC) $(CFLAGS) -c unixclient.c -o unixclient.o
+
+signalserver: signalserver.o
+	$(CC) $(CFLAGS) signalserver.o -o signalserver
+
+signalserver.o: signalserver.c state.h
+	$(CC) $(CFLAGS) -c signalserver.c -o signalserver.o
 
 clean:
 	rm -f ./*.o
