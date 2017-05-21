@@ -7,6 +7,7 @@ extern int getloadavg(double loadavg[], int nelem);
 
 
 #define S_FNAME "/kk2987"
+#define SOCK_FNAME "/tmp/kk2987"
 
 
 struct state {

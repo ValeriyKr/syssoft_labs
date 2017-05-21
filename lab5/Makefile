@@ -16,7 +16,7 @@ else
 		CFLAGS = --std=gnu89 -Wall -Wextra -pedantic -O0 -g -lrt -pthreads
 endif
 
-all: server client multithread multithread6 multithread7
+all: server client multithread multithread6 multithread7 unixserver unixclient
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
@@ -47,6 +47,18 @@ multithread7: multithread7.o
 
 multithread7.o: multithread7.c
 	$(CC) $(CFLAGS) -c multithread7.c -o multithread7.o
+
+unixserver: unixserver.o
+	$(CC) $(CFLAGS) unixserver.o -o unixserver
+
+unixserver.o: unixserver.c state.h
+	$(CC) $(CFLAGS) -c unixserver.c -o unixserver.o
+
+unixclient: unixclient.o
+	$(CC) $(CFLAGS) unixclient.o -o unixclient
+
+unixclient.o: unixclient.c state.h
+	$(CC) $(CFLAGS) -c unixclient.c -o unixclient.o
 
 clean:
 	rm -f ./*.o
