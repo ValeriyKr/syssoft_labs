@@ -103,7 +103,7 @@ static void sighandler(int signo) {
 }
 
 
-static void usage(char *v) __attribute__((noreturn)) {
+static void usage(char *v) {
         fprintf(stderr, "USAGE: %s <tmain> <treverse> <tcap>\n", v);
         _exit(-1);
 }
