@@ -17,7 +17,7 @@ else
 endif
 
 all: server client multithread multithread6 multithread7 unixserver \
-		unixclient signalserver
+		unixclient signalserver pipes
 
 server: server.o
 	$(CC) $(CFLAGS) server.o -o server
@@ -66,6 +66,12 @@ signalserver: signalserver.o
 
 signalserver.o: signalserver.c state.h
 	$(CC) $(CFLAGS) -c signalserver.c -o signalserver.o
+
+pipes: pipes.o
+	$(CC) $(CFLAGS) pipes.o -o pipes
+
+pipes.o: pipes.c state.h
+	$(CC) $(CFLAGS) -c pipes.c -o pipes.o
 
 clean:
 	rm -f ./*.o
