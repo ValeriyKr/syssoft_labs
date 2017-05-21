@@ -35,6 +35,7 @@ static bool_t update() {
 
 static void sighandler(int signo) {
         signal(signo, sighandler);
+        while (!update());
         switch (signo) {
         case SIGHUP:
                 printf("PID: %d\n", state.pid);
@@ -58,6 +59,7 @@ static void sighandler(int signo) {
 
 int main() {
         int sleep_ret;
+        struct sigaction act;
 
         if (-1 == time(&state.start_time)) {
                 perror("time");
@@ -67,11 +69,15 @@ int main() {
         state.uid = getuid();
         state.gid = getgid();
 
-        signal(SIGHUP, sighandler);
-        signal(SIGINT, sighandler);
-        signal(SIGTERM, sighandler);
-        signal(SIGUSR1, sighandler);
-        signal(SIGUSR2, sighandler);
+        memset(&act, 0, sizeof(act));
+        act.sa_handler = sighandler;
+        sigfillset(&act.sa_mask);
+
+        sigaction(SIGHUP, &act, NULL);
+        sigaction(SIGINT, &act, NULL);
+        sigaction(SIGTERM, &act, NULL);
+        sigaction(SIGUSR1, &act, NULL);
+        sigaction(SIGUSR2, &act, NULL);
 
         while (sleep_ret = usleep(1000000), true) {
                 if (-1 == sleep_ret) {
