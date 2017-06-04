@@ -87,7 +87,7 @@ static void do_work(int client) {
     {
       size_t i;
       for (i = 0; i <= len; ++i) {
-        if (buf[i] == '\n') {
+        if (buf[i] == '\n' || buf[i] == '\r') {
           buf[i] = '\0';
           len = i;
           break;
