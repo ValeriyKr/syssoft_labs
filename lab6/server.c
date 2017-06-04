@@ -84,7 +84,16 @@ static void do_work(int client) {
       return;
     }
 
-    buf[--len] = '\0';
+    {
+      size_t i;
+      for (i = 0; i <= len; ++i) {
+        if (buf[i] == '\n') {
+          buf[i] = '\0';
+          len = i;
+          break;
+        }
+      }
+    }
     write(client, buf, len);
     write(client, ":\n", sizeof(":\n"));
     {
