@@ -52,7 +52,6 @@ int queue_dequeue(struct queue *q) {
 
 
 void queue_destroy(struct queue *q) {
-  fputs("Free", stderr);
   if (q) {
     struct queue *next = q->head;
     while (next) {

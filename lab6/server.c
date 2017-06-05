@@ -36,6 +36,7 @@ static void usage(char *name) {
 static void cleanup() {
   int client;
 
+  puts("end");
   while (-1 != (client = queue_dequeue(clients))) {
     close(client);
   }
@@ -49,6 +50,7 @@ static void cleanup() {
 
 static void sighandler(int s) {
   signal(s, sighandler);
+  if (SIGPIPE == s) return;
   cleanup();
 }
 
@@ -95,19 +97,20 @@ static void do_work(int client) {
       }
     }
     write(client, buf, len);
-    write(client, ":\n", sizeof(":\n"));
+    write(client, ":\n", 2);
     {
       DIR *dir;
       struct dirent *ent;
       if (NULL != (dir = opendir(buf))) {
         while (NULL != (ent = readdir(dir))) {
-          write(client, "\t", sizeof("\t"));
+          write(client, "\t", 1);
           write(client, ent->d_name, strlen(ent->d_name));
-          write(client, "\n", sizeof("\n"));
+          write(client, "\n", 1);
         }
+        write(client, "\0", 1);
         closedir(dir);
       } else {
-        write(client, "\t<error>", sizeof("\t<error>"));
+        write(client, "\t<error>\n", sizeof("\t<error>\n"));
       }
     }
 
@@ -166,12 +169,12 @@ static void service_client() {
       pthread_mutex_unlock(&pool_size_mutex);
       if (pthread_create(&th, NULL, worker, NULL)) {
         perror("pthread_create");
-        _exit(8);
+        cleanup();
       }
 
       if (pthread_detach(th)) {
         perror("pthread_detach");
-        _exit(9);
+        cleanup();
       }
     } else {
       pthread_mutex_unlock(&pool_size_mutex);
@@ -205,22 +208,22 @@ int main(int c, char *v[]) {
 
   if (NULL == (clients = queue_init())) {
     perror("malloc");
-    _exit(6);
+    cleanup();
   }
 
   if (0 != pthread_mutex_init(&queue_mutex, NULL)) {
     perror("pthread_mutex_init");
-    _exit(7);
+    cleanup();
   }
 
   if (0 != pthread_cond_init(&client_came, NULL)) {
     perror("pthread_cond_init");
-    _exit(7);
+    cleanup();
   }
   
   if (0 != pthread_mutex_init(&pool_size_mutex, NULL)) {
     perror("pthread_mutex_init");
-    _exit(7);
+    cleanup();
   }
 
   {
@@ -229,12 +232,12 @@ int main(int c, char *v[]) {
       pthread_t th;
       if (pthread_create(&th, NULL, worker, NULL)) {
         perror("pthread_create");
-        _exit(8);
+        cleanup();
       }
 
       if (pthread_detach(th)) {
         perror("pthread_detach");
-        _exit(9);
+        cleanup();
       }
     }
     pool_size = n;
@@ -242,7 +245,7 @@ int main(int c, char *v[]) {
 
   if (-1 == (sockfd = socket(AF_INET, SOCK_STREAM, 0))) {
     perror("socket");
-    _exit(2);
+    cleanup();
   }
 
   memset(&addr, 0, sizeof(addr));
@@ -252,17 +255,17 @@ int main(int c, char *v[]) {
 
   if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt))) {
     perror("setsockopt");
-    _exit(2);
+    cleanup();
   }
 
   if (-1 == bind(sockfd, (struct sockaddr *) &addr, sizeof(addr))) {
     perror("bind");
-    _exit(3);
+    cleanup();
   }
 
   if (-1 == listen(sockfd, 50)) {
     perror("listen");
-    _exit(4);
+    cleanup();
   }
 
   while (true) {
@@ -272,8 +275,7 @@ int main(int c, char *v[]) {
     if (-1 == (fd = accept(sockfd, (struct sockaddr *) &cli_addr,
             (socklen_t *) &cli_addr_len))) {
       perror("accept");
-      close(sockfd);
-      _exit(5);
+      cleanup();
     }
     pthread_mutex_lock(&queue_mutex);
     queue_enqueue(clients, fd);
